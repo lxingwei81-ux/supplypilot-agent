@@ -1,0 +1,2 @@
+source_type,adjustment_id,item_id,week_start,before_qty,after_qty,reason_code,reason,adjusted_by,approved_by,effective_from,effective_to,status,data_version
+DEMO,ADJ-DEMO-001,PRODUCT_A,2026-07-27,1000,1150,PROJECT_UPDATE,客户项目确认增量,planner_a,manager_a,2026-07-27,2026-08-17,APPROVED,DEMO-FCST-V1

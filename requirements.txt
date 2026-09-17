@@ -1,0 +1,10 @@
+openai-agents
+fastapi
+uvicorn
+streamlit
+pydantic
+PyYAML>=6.0
+pandas>=2.0
+pytest>=8.0
+openpyxl>=3.1
+websocket-client>=1.8

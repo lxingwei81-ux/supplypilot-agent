@@ -1,0 +1,223 @@
+metadata:
+  version: "2.0.0"
+  source: "SupplyPilot Demo rules; validate against enterprise policy before production"
+  demo_only: true
+
+forecast:
+  horizons: [4, 8, 13, 26]
+  backtest:
+    forecast_horizon: 4
+    min_training_periods: 13
+    step: 1
+    min_backtests: 2
+  parameters:
+    weighted_moving_average_weights: [0.5, 0.3, 0.2]
+    ses_alpha: 0.3
+    holt_alpha: 0.3
+    holt_beta: 0.1
+    holt_winters_alpha: 0.3
+    holt_winters_beta: 0.1
+    holt_winters_gamma: 0.1
+    seasonal_periods: 13
+    croston_alpha: 0.2
+    tsb_beta: 0.2
+  score_weights:
+    wape: 0.45
+    absolute_bias: 0.15
+    stockout_loss: 0.25
+    excess_loss: 0.15
+  loss_costs:
+    default_stockout_unit_cost: 5.0
+    default_excess_unit_cost: 0.2
+  scenario_band:
+    minimum_rate: 0.10
+    volatility_multiplier: 1.0
+  confidence:
+    high_min_periods: 52
+    medium_min_periods: 26
+    high_max_wape: 0.20
+    medium_max_wape: 0.40
+    high_max_cv: 0.50
+  fva_tolerance: 0.000001
+
+classification:
+  abc:
+    a_cumulative_value: 0.80
+    b_cumulative_value: 0.95
+  xyz:
+    x_max_cv: 0.50
+    y_max_cv: 1.00
+    trend_rate_threshold: 0.20
+    seasonal_autocorrelation_threshold: 0.60
+  intermittency:
+    adi_threshold: 1.32
+    cv_squared_threshold: 0.49
+
+inventory:
+  service_levels:
+    default: 0.95
+    critical: 0.99
+    A_X: 0.98
+    A_Y: 0.97
+    A_Z: 0.95
+    B_X: 0.96
+    B_Y: 0.95
+    B_Z: 0.93
+    C_X: 0.94
+    C_Y: 0.92
+    C_Z: 0.90
+  default_lead_time_variance: 0.25
+  coverage_weeks:
+    shortage_warning_below: 2.0
+    excess_13w_above: 13.0
+    excess_26w_above: 26.0
+  lot_sizing:
+    default_moq: 1.0
+    default_mpq: 1.0
+    default_package_multiple: 1.0
+  eol_new_replenishment_allowed: false
+
+demand_change:
+  absolute_threshold: 1000.0
+  increase_rate: 0.50
+  decrease_rate: -0.50
+  actual_forecast_deviation_warning: 0.50
+
+risk:
+  shortage:
+    critical_qty: 5000.0
+    high_qty: 1000.0
+    medium_qty: 1.0
+    critical_weeks_to_event: 1
+    high_weeks_to_event: 3
+  excess:
+    critical_value: 1000000.0
+    high_value: 300000.0
+    medium_value: 50000.0
+  aging:
+    warning_days: 180
+    critical_days: 365
+
+procurement:
+  long_lead_time_days: 30
+  cancellation_window_days: 14
+  processing_days: 7
+  maximum_cancellation_penalty_rate: 0.20
+
+approvals:
+  matrix:
+    DELETE_PR: ["计划", "采购"]
+    CANCEL_PO: ["采购经理", "计划经理"]
+    REDUCE_PO: ["采购经理", "计划经理"]
+    EXPEDITE_PO: ["采购经理", "计划经理"]
+    DELAY_PO: ["采购经理", "计划经理"]
+    SPLIT_PO: ["采购经理", "计划经理"]
+    TRANSFER: ["来源工厂计划", "目标工厂计划", "物流"]
+    SUBSTITUTE: ["研发", "质量", "计划", "采购"]
+    ECN_SWITCH: ["研发", "质量", "计划", "采购"]
+    SCRAP: ["MRB/质量", "财务", "供应链负责人"]
+    DEMAND_ADJUST: ["需求计划", "销售/项目"]
+    SAFETY_STOCK_ADJUST: ["计划经理"]
+
+data_quality:
+  blocking_codes:
+    - MISSING_REQUIRED_FIELD
+    - INVALID_DATE
+    - INVALID_NUMERIC
+    - DUPLICATE_RECORD
+    - BOM_CYCLE
+    - INVALID_BOM
+    - MISSING_UNIT_CONVERSION
+  minimum_history_periods: 13
+  required_fields:
+    historical_demand: [item_id, week_start, demand_qty]
+    bom: [parent_id, child_id, unit_usage]
+    inventory: [material_id, plant, on_hand]
+    procurement: [document_id, material_id, plant, open_qty]
+
+reporting:
+  currency: CNY
+  timezone: Asia/Shanghai
+  trace_source_label: DEMO
+
+allocation:
+  frozen_order_bonus: 1000.0
+  customer_priority_weight: 100.0
+  shortage_penalty_weight: 0.01
+  due_urgency_weight: 10.0
+  lifecycle_priority:
+    NPI: 7.0
+    RAMP_UP: 9.0
+    MATURE: 8.0
+    DECLINE: 4.0
+    EOL: 2.0
+    SERVICE: 6.0
+  minimum_fair_share: 0.0
+
+transfer_optimization:
+  default_unit_transfer_cost: 1.0
+  default_fixed_transfer_cost: 100.0
+  maximum_lead_time_days: 14
+  minimum_source_coverage_weeks: 2.0
+  shortage_penalty_per_unit: 100.0
+
+po_optimization:
+  default_holding_cost_per_unit_week: 0.05
+  default_obsolescence_cost_per_unit: 1.0
+  default_shortage_cost_per_unit: 100.0
+  default_cancellation_cost_rate: 0.05
+  maximum_dynamic_programming_states: 20000
+
+replenishment_optimization:
+  default_order_fixed_cost: 100.0
+  default_holding_cost_per_unit: 0.10
+  default_shortage_cost_per_unit: 100.0
+  maximum_target_multiplier: 3.0
+  maximum_candidates: 10000
+
+ecn_workflow:
+  require_customer_approval_for_customer_characteristic: true
+  required_evidence:
+    SPEC_REVIEW: [drawing_comparison, specification_comparison]
+    TRIAL: [trial_plan]
+    QUALITY_APPROVAL: [trial_result, quality_report]
+    CUSTOMER_APPROVAL: [customer_submission]
+    APPROVED: [effective_batch, traceability_rule]
+
+snapshots:
+  retention_weeks: 104
+  trend_windows: [4, 13, 26]
+
+excel_import:
+  maximum_rows: 100000
+  allowed_extensions: [.xlsx, .xlsm]
+  aliases:
+    item_id: [item_id, sku, material_id, 物料编码, 产品编码]
+    week_start: [week_start, date, 周开始, 日期]
+    demand_qty: [demand_qty, quantity, qty, 需求数量, 数量]
+    plant: [plant, factory, 工厂]
+    customer: [customer, customer_id, 客户]
+
+task_management:
+  reminder_days_before_due: 2
+  overdue_escalation_days: [1, 3, 7]
+  escalation_roles: [部门经理, 供应链负责人, 管理层]
+
+supplier_reliability:
+  on_time_tolerance_days: 2
+  minimum_samples: 5
+  weights:
+    on_time_rate: 0.40
+    quantity_fill_rate: 0.25
+    lead_time_stability: 0.20
+    confirmation_adherence: 0.15
+  grade_thresholds:
+    A: 0.90
+    B: 0.75
+    C: 0.60
+
+scenario_optimization:
+  holding_cost_per_unit_week: 0.10
+  shortage_cost_per_unit: 100.0
+  excess_cost_per_unit: 1.0
+  maximum_allowed_shortage: 0.0

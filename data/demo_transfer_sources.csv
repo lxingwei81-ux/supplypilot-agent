@@ -1,0 +1,4 @@
+source_type,plant,material_id,on_hand,protected_qty,future_demand,minimum_coverage_qty,data_version
+DEMO,NORTH_PLANT,MAT-B,10000,1500,2500,1000,DEMO-TRANSFER-V1
+DEMO,SOUTH_PLANT,MAT-B,7500,1000,2000,1000,DEMO-TRANSFER-V1
+DEMO,WEST_PLANT,MAT-B,4000,1000,2500,500,DEMO-TRANSFER-V1

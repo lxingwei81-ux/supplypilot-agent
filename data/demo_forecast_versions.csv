@@ -1,0 +1,4 @@
+source_type,version_id,item_id,version_type,status,week_start,forecast_qty,created_by,approved_by,data_version
+DEMO,STAT-001,PRODUCT_A,STATISTICAL,APPROVED,2026-07-27,1000,SYSTEM,ENGINE,DEMO-FCST-V1
+DEMO,ADJ-001,PRODUCT_A,MANUAL_ADJUSTMENT,APPROVED,2026-07-27,1150,planner_a,manager_a,DEMO-FCST-V1
+DEMO,CONS-001,PRODUCT_A,CONSENSUS,APPROVED,2026-07-27,1100,planner_a,manager_a,DEMO-FCST-V1

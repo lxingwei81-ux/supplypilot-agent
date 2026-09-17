@@ -1,0 +1,4 @@
+source_type,document_id,material_id,plant,open_qty,cancelable_qty,reschedulable_qty,locked_qty,unit_price,cancellation_penalty_rate,weeks_until_receipt,cancellation_deadline,mpq,data_version
+DEMO,PO-OPT-001,MAT-A,DEMO_PLANT,5000,4000,1000,0,18,0.03,4,2026-08-01,100,DEMO-PO-OPT-V1
+DEMO,PO-OPT-002,MAT-A,DEMO_PLANT,6000,2000,2500,1500,18,0.08,8,2026-08-08,500,DEMO-PO-OPT-V1
+DEMO,PO-OPT-003,MAT-A,DEMO_PLANT,5000,0,1500,3500,18,0.15,10,2026-07-15,500,DEMO-PO-OPT-V1
