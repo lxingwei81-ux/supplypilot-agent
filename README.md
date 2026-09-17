@@ -174,30 +174,31 @@ python examples/run_phase2_cases.py --case 2
 
 Streamlit共24个页面，覆盖数据质量、需求分类、预测/回测、预测版本、BOM、库存投影、风险、采购动作、ATP、调拨、ECN、任务和管理驾驶舱。
 
-## 智能体架构
+## 智能体业务编排架构
 
 ```mermaid
 flowchart TB
-    U["用户业务问题"] --> AG["SupplyPilot Agent"]
-    AG --> RT["规则优先场景路由"]
-    AG --> LLM["LLM：意图、解释、报告"]
-    AG --> TOOLS["21个Agent Tools"]
-    TOOLS --> DQ["数据质量/分类"]
-    TOOLS --> FC["预测/回测/版本"]
-    TOOLS --> BI["BOM/库存/风险"]
-    TOOLS --> OP["ATP/调拨/采购优化"]
-    TOOLS --> WF["审批/任务/ECN"]
-    DQ --> PY["确定性Python领域服务"]
-    FC --> PY
-    BI --> PY
-    OP --> PY
-    WF --> PY
-    PY --> MD["Pydantic领域模型"]
-    MD --> API["FastAPI"]
-    MD --> UI["Streamlit"]
-    MD --> JSON["可验证JSON/CSV"]
-    DATA["CSV / Excel Demo"] --> PY
-    RULES["rules.yaml"] --> PY
+    U["用户业务问题"] --> A["SupplyPilot Agent<br/>意图识别 · 场景路由 · 任务规划"]
+
+    A --> D["需求分析工具<br/>分类 · 预测 · 回测 · 版本"]
+    A --> I["库存计划工具<br/>安全库存 · 周度投影 · MRP模拟"]
+    A --> B["BOM分析工具<br/>多级展开 · 损耗 · 版本"]
+
+    D --> R["异常诊断引擎<br/>缺料 · 冗余 · 交付异常 · 根因"]
+    I --> R
+    B --> R
+
+    R --> S["供应风险工具<br/>PO晚到 · 供应商可靠性"]
+    R --> T["协同优化工具<br/>ATP分配 · 跨厂调拨 · 替代料"]
+    R --> E["EOL与ECN工具<br/>呆滞风险 · ECN消耗"]
+
+    S --> AR["Action Ranking Engine<br/>成本 · 风险 · 时效 · 可执行性"]
+    T --> AR
+    E --> AR
+
+    AR --> V["动作前后校验<br/>重新投影 · 新缺料拦截 · 残余风险"]
+    V --> H["人工审批 HITL<br/>责任部门 · 审批对象 · 截止日期"]
+    H --> O["采购/计划协同方案<br/>结构化报告 · CSV · API · 任务清单"]
 ```
 
 架构原则：
