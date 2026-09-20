@@ -200,7 +200,6 @@ flowchart TB
     V --> H["人工审批 HITL<br/>责任部门 · 审批对象 · 截止日期"]
     H --> O["采购/计划协同方案<br/>结构化报告 · CSV · API · 任务清单"]
 ```
-![Uploading image.png…]()
 
 
 
