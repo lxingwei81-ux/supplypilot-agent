@@ -14,16 +14,8 @@
 ## 交互式案例演示
 
 想先看项目能解决什么业务问题，可以从这里开始：
-
-- [Gitee Pages 展示地址](https://chenxingwei1.gitee.io/supply-chain-pilot-agent/)：若当前账号/仓库已开通 Gitee Pages，打开根地址会自动跳转到交互式案例页。
 - [GitHub 在线展示地址](https://lxingwei81-ux.github.io/supplypilot-agent/)：当前已部署可访问；8个可点击案例覆盖中间周缺料、需求下降消冗、共用料ATP、多工厂调拨、采购批量优化、预测调整FVA、ECN旧料消耗和供应商交付风险。
-- 每个案例都把**业务场景、计算公式、规则约束、方法步骤、动作前后校验**放在同一页，方便招聘方或评审快速理解项目价值。
-- 在 Gitee/GitHub 仓库文件列表里直接点`.html`文件会显示源码，这是代码托管平台的默认行为；请使用上面的 Pages 在线演示链接。
-- 如果 Gitee Pages 当前不可用或返回 404，请使用 GitHub 在线展示地址；仓库已经内置根目录 `index.html` 和 `docs/showcase/index.html`，一旦 Pages 服务可用即可直接跳转。
-- 本地单机打开：下载仓库后，Windows用户双击`docs/showcase/open-showcase.bat`，或直接用浏览器打开`docs/showcase/supplypilot-showcase.html`。
-- 本地服务预览：`python -m http.server 8080 --bind 127.0.0.1 --directory docs/showcase`，然后打开 `http://127.0.0.1:8080/supplypilot-showcase.html`。
-
-![SupplyPilot Supply Chain Control Tower](assets/screenshots/control-tower-overview.png)
+- 每个案例都把**业务场景、计算公式、规则约束、方法步骤、动作前后校验**放在同一页，方便招聘方或评审快速理解项目价值
 
 ## 五大工作区
 
@@ -35,24 +27,14 @@
 | **Procurement** | 哪个PO、工厂或供应商需要协同 | PO动作、ATP、跨厂调拨、采购优化、供应商可靠性与审批任务 |
 | **AI Copilot** | 为什么发生、建议做什么 | 结构化摘要、证据、根因、建议动作、预期影响、规则与限制 |
 
-旧版页面和`?page=`直达方式继续保留，只是重新归入五个主工作区，避免破坏原有Demo和调用路径。
+## 文档导航
 
-## Hero Demo：MAT-B需求上升与供应延期
-
-控制塔默认故事使用仓库内可复现的`PRODUCT_B / MAT-B`合成数据。周度投影识别出最大缺口`8,800`件；模拟从来源工厂调拨`1,800`件并同时重算两地库存后，最大缺口降至`7,000`件，首次缺料由`2026-08-24`推迟至`2026-09-21`，来源工厂最大缺口仍为`0`且期末库存不低于安全库存。
-
-| 指标 | 动作前 | 调拨1,800件后 |
-|---|---:|---:|
-| 首次缺料周 | 2026-08-24 | 2026-09-21 |
-| 最大缺口 | 8,800 | 7,000 |
-| 来源工厂新增缺料 | — | 0 |
-| 是否自动执行 | 否 | 否，需计划/物流审批 |
-
-同一行动中心还展示MAT-A消冗案例：取消`8,000`件未锁定PO后，期末冗余由`9,000`降至`1,000`件，重新投影未制造缺料。以上都是Demo计算结果，不代表生产收益。
-
-> 展示口径：需求预测图使用`DEMO-HISTORY-V1`，物料库存异常与动作中心使用独立的`DEMO-INV-V1`情景包。两者在控制塔中组合展示，但当前Hero不声称已按周完成Forecast→BOM→Inventory数据贯通；完整BOM拆解和库存投影能力可在对应工作区分别验证。
-
-[查看控制塔完整案例](docs/cases/12-control-tower-hero.md) · [查看公式与规则](docs/FORMULA_CATALOG.md)
+- [公式与规则手册](docs/FORMULA_CATALOG.md)
+- [智能体与技术架构](docs/AGENT_ARCHITECTURE.md)
+- [业务案例库](docs/cases/README.md)
+- [业务场景规格](docs/BUSINESS_SCENARIO_SPEC.md)
+- [数据字典](docs/DATA_DICTIONARY.md)
+- [GitHub发布检查清单](docs/GITHUB_RELEASE_CHECKLIST.md)
 
 ## 30秒看懂项目
 
@@ -369,15 +351,6 @@ supplypilot_agent_v2/
 ├─ tests/                         # 140项领域、控制塔、API和导航测试
 └─ requirements.txt
 ```
-
-## 文档导航
-
-- [公式与规则手册](docs/FORMULA_CATALOG.md)
-- [智能体与技术架构](docs/AGENT_ARCHITECTURE.md)
-- [业务案例库](docs/cases/README.md)
-- [业务场景规格](docs/BUSINESS_SCENARIO_SPEC.md)
-- [数据字典](docs/DATA_DICTIONARY.md)
-- [GitHub发布检查清单](docs/GITHUB_RELEASE_CHECKLIST.md)
 
 ## 数据与安全边界
 
