@@ -11,6 +11,14 @@
 
 > 设计边界：LLM只负责语言理解与表达辅助；所有预测、库存、BOM、数量、金额、风险分级和动作前后结果均由确定性Python服务计算。PO取消、跨厂调拨、替代料和ECN等高影响动作只生成建议与审批信息，不自动写回ERP。
 
+## 交互式案例演示
+
+想先看项目能解决什么业务问题，可以从这里开始：
+
+- [SupplyPilot 交互式案例展示](docs/showcase/supplypilot-showcase.html)：6个可点击案例，覆盖中间周缺料、需求下降消冗、共用料ATP、多工厂调拨、采购批量优化和预测调整FVA。
+- 每个案例都把**业务场景、计算公式、规则约束、方法步骤、动作前后校验**放在同一页，方便招聘方或评审快速理解项目价值。
+- 本地预览：`python -m http.server 8080 --bind 127.0.0.1 --directory docs/showcase`，然后打开 `http://127.0.0.1:8080/supplypilot-showcase.html`。
+
 ![SupplyPilot Supply Chain Control Tower](assets/screenshots/control-tower-overview.png)
 
 ## 五大工作区

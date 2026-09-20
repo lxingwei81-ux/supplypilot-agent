@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SupplyPilot · 供应链智能体交互案例展示</title>
+<style>
+  :root {
+    --bg: #f3f6fb;
+    --panel: #ffffff;
+    --panel-2: #f8fafd;
+    --ink: #132033;
+    --muted: #627086;
+    --line: #dfe6ef;
+    --blue: #2563eb;
+    --blue-2: #dbeafe;
+    --green: #16a34a;
+    --green-2: #dcfce7;
+    --amber: #d97706;
+    --amber-2: #fef3c7;
+    --red: #dc2626;
+    --red-2: #fee2e2;
+    --slate: #334155;
+    --shadow: 0 18px 45px rgba(15, 23, 42, .08);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: radial-gradient(circle at top left, #eaf1ff 0, transparent 34rem), var(--bg);
+    color: var(--ink);
+    font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif;
+    line-height: 1.58;
+  }
+
+  .shell {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 22px;
+  }
+
+  .topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: center;
+    padding: 22px 24px;
+    background: rgba(255, 255, 255, .9);
+    border: 1px solid rgba(223, 230, 239, .9);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px);
+  }
+
+  .eyebrow {
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  h1, h2, h3, p { margin: 0; }
+  h1 {
+    margin-top: 6px;
+    font-size: clamp(25px, 3vw, 38px);
+    line-height: 1.16;
+    letter-spacing: 0;
+  }
+  .lead {
+    margin-top: 10px;
+    max-width: 880px;
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  .status-card {
+    min-width: 280px;
+    padding: 16px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #132033, #1e3a8a);
+    color: #fff;
+  }
+  .status-card .num {
+    font-size: 34px;
+    font-weight: 850;
+    line-height: 1;
+  }
+  .status-card .sub {
+    margin-top: 8px;
+    color: rgba(255, 255, 255, .82);
+    font-size: 13px;
+  }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--slate);
+    font-size: 12px;
+    font-weight: 650;
+  }
+  .pill.dark {
+    border-color: rgba(255, 255, 255, .25);
+    background: rgba(255, 255, 255, .14);
+    color: #fff;
+  }
+
+  .body-grid {
+    display: grid;
+    grid-template-columns: 285px minmax(0, 1fr);
+    gap: 18px;
+    margin-top: 18px;
+    align-items: start;
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 18px;
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, .9);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+  }
+  .sidebar-title {
+    padding: 6px 8px 12px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .08em;
+  }
+  .case-tab {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 10px;
+    align-items: center;
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: 14px;
+    padding: 10px;
+    cursor: pointer;
+    color: var(--ink);
+    text-align: left;
+    transition: .18s ease;
+  }
+  .case-tab:hover { background: var(--panel-2); }
+  .case-tab.active {
+    background: var(--blue-2);
+    border-color: #bfdbfe;
+  }
+  .case-no {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: #eef2f7;
+    color: var(--slate);
+    font-size: 13px;
+    font-weight: 850;
+  }
+  .case-tab.active .case-no {
+    background: var(--blue);
+    color: #fff;
+  }
+  .case-name {
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .case-desc {
+    margin-top: 1px;
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .defense-map {
+    margin-top: 14px;
+    padding: 12px;
+    border-radius: 14px;
+    background: #f8fafc;
+    border: 1px dashed var(--line);
+  }
+  .defense-map b { display: block; font-size: 13px; }
+  .defense-map span { color: var(--muted); font-size: 12px; }
+
+  .panel {
+    display: none;
+  }
+  .panel.active {
+    display: block;
+    animation: enter .22s ease both;
+  }
+  @keyframes enter {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .case-shell {
+    display: grid;
+    gap: 16px;
+  }
+  .hero-card, .card {
+    background: rgba(255, 255, 255, .94);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+  }
+  .hero-card {
+    padding: 22px;
+  }
+  .case-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: start;
+  }
+  .case-head h2 {
+    font-size: clamp(22px, 2.4vw, 31px);
+    line-height: 1.2;
+  }
+  .case-head p {
+    margin-top: 8px;
+    color: var(--muted);
+    max-width: 820px;
+  }
+  .priority {
+    padding: 7px 11px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 850;
+    white-space: nowrap;
+  }
+  .priority.red { color: var(--red); background: var(--red-2); }
+  .priority.amber { color: var(--amber); background: var(--amber-2); }
+  .priority.green { color: var(--green); background: var(--green-2); }
+  .priority.blue { color: var(--blue); background: var(--blue-2); }
+
+  .formula-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .formula {
+    min-height: 88px;
+    padding: 13px;
+    border-radius: 14px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+  }
+  .formula .label {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 750;
+  }
+  code, .code {
+    display: inline-block;
+    margin-top: 6px;
+    color: #0f172a;
+    font-family: Consolas, "SFMono-Regular", Menlo, monospace;
+    font-size: 12px;
+  }
+
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .kpi {
+    padding: 15px;
+    border-radius: 16px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+  }
+  .kpi .value {
+    font-size: clamp(22px, 2.5vw, 32px);
+    font-weight: 880;
+    letter-spacing: 0;
+    line-height: 1.08;
+  }
+  .kpi .name {
+    margin-top: 7px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .kpi.blue .value { color: var(--blue); }
+  .kpi.green .value { color: var(--green); }
+  .kpi.amber .value { color: var(--amber); }
+  .kpi.red .value { color: var(--red); }
+
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(320px, .75fr);
+    gap: 16px;
+  }
+  .card {
+    padding: 18px;
+  }
+  .section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .section-title h3 {
+    font-size: 17px;
+  }
+  .section-title span {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .chart-frame {
+    min-height: 360px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: linear-gradient(180deg, #fff, #f8fafc);
+    overflow: hidden;
+  }
+  svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .axis { stroke: #cbd5e1; stroke-width: 1; }
+  .grid { stroke: #e2e8f0; stroke-width: 1; }
+  .label { fill: #64748b; font-size: 11px; }
+  .small-label { fill: #64748b; font-size: 10px; }
+  .dark-label { fill: #132033; font-size: 12px; font-weight: 750; }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  button, input {
+    font: inherit;
+  }
+  .btn {
+    border: 0;
+    border-radius: 11px;
+    padding: 9px 13px;
+    background: var(--blue);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .btn.secondary {
+    background: #e2e8f0;
+    color: var(--ink);
+  }
+  .btn:hover { filter: brightness(.98); }
+  input[type="range"] {
+    width: min(420px, 100%);
+    accent-color: var(--blue);
+  }
+
+  .method-list {
+    display: grid;
+    gap: 10px;
+    counter-reset: step;
+  }
+  .method {
+    position: relative;
+    padding: 12px 12px 12px 46px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #fff;
+  }
+  .method::before {
+    counter-increment: step;
+    content: counter(step);
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--blue-2);
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 850;
+  }
+  .method b {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 13px;
+  }
+  .method span {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .rule-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .rule {
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+  }
+  .rule b {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+  .rule span {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  th, td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #f8fafc;
+    color: var(--muted);
+    font-weight: 800;
+  }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+  }
+  .tag.red { color: var(--red); background: var(--red-2); }
+  .tag.green { color: var(--green); background: var(--green-2); }
+  .tag.amber { color: var(--amber); background: var(--amber-2); }
+  .tag.blue { color: var(--blue); background: var(--blue-2); }
+
+  .callout {
+    padding: 13px 14px;
+    border-radius: 14px;
+    background: #eff6ff;
+    border-left: 4px solid var(--blue);
+    color: #1e3a8a;
+    font-size: 13px;
+  }
+
+  .source-note {
+    margin-top: 18px;
+    padding: 15px 18px;
+    border-radius: 16px;
+    color: var(--muted);
+    background: rgba(255, 255, 255, .92);
+    border: 1px solid var(--line);
+    font-size: 12px;
+  }
+
+  @media (max-width: 980px) {
+    .topbar, .body-grid, .split, .case-head {
+      grid-template-columns: 1fr;
+    }
+    .sidebar {
+      position: static;
+    }
+    .formula-strip, .kpis, .rule-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .shell { padding: 12px; }
+    .topbar, .hero-card, .card { border-radius: 14px; padding: 16px; }
+    .case-tab { grid-template-columns: 28px 1fr; }
+    .case-no { width: 28px; height: 28px; }
+    .chart-frame { min-height: 300px; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">Interactive supply chain agent demo</div>
+      <h1>SupplyPilot 供应链智能体交互案例展示</h1>
+      <p class="lead">用 6 个可复现 Demo 展示项目能力：从需求变化、周度投影、库存消冗，到共用料 ATP、多工厂调拨、采购批量优化和预测人工调整。LLM 只负责解释与编排，数量、金额、风险和动作影响全部由确定性规则计算。</p>
+      <div class="meta-row">
+        <span class="pill">Python + FastAPI + Streamlit</span>
+        <span class="pill">三道防线：预测 · 库存 · 执行</span>
+        <span class="pill">140 项测试</span>
+        <span class="pill">Synthetic Demo Data</span>
+      </div>
+    </div>
+    <div class="status-card">
+      <div class="num">6</div>
+      <div class="sub">个交互案例，覆盖预测、库存、采购协同和动作前后验证。</div>
+      <div class="meta-row">
+        <span class="pill dark">不写回 ERP</span>
+        <span class="pill dark">高影响动作需审批</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="body-grid">
+    <aside class="sidebar">
+      <div class="sidebar-title">CASE NAVIGATION</div>
+      <button class="case-tab active" data-case="case1">
+        <span class="case-no">01</span>
+        <span><span class="case-name">中间周缺料</span><span class="case-desc">总量不缺但到货太晚</span></span>
+      </button>
+      <button class="case-tab" data-case="case2">
+        <span class="case-no">02</span>
+        <span><span class="case-name">需求下降消冗</span><span class="case-desc">取消 PO 前后重算</span></span>
+      </button>
+      <button class="case-tab" data-case="case3">
+        <span class="case-no">03</span>
+        <span><span class="case-name">共用料 ATP</span><span class="case-desc">有限供给如何分配</span></span>
+      </button>
+      <button class="case-tab" data-case="case4">
+        <span class="case-no">04</span>
+        <span><span class="case-name">多工厂调拨</span><span class="case-desc">最小成本流与来源保护</span></span>
+      </button>
+      <button class="case-tab" data-case="case5">
+        <span class="case-no">05</span>
+        <span><span class="case-name">采购批量优化</span><span class="case-desc">MOQ/MPQ/价格阶梯</span></span>
+      </button>
+      <button class="case-tab" data-case="case6">
+        <span class="case-no">06</span>
+        <span><span class="case-name">预测调整 FVA</span><span class="case-desc">统计预测到共识版本</span></span>
+      </button>
+
+      <div class="defense-map">
+        <b>展示主线</b>
+        <span>先判断哪条防线失效，再用公式和数据定位动作，最后做动作前后校验。</span>
+      </div>
+    </aside>
+
+    <section class="case-shell">
+      <article class="panel active" id="case1">
+        <div class="hero-card">
+          <div class="case-head">
+            <div>
+              <h2>总量不缺，为什么中间周会停线？</h2>
+              <p>MAT-C 未来 13 周总供应大于总需求，但 PO 到货集中在后段。静态汇总会误判为“有盈余”，周度递推才能看出第 6 周开始断料。</p>
+            </div>
+            <span class="priority red">动态缺料</span>
+          </div>
+          <div class="formula-strip">
+            <div class="formula"><div class="label">库存递推</div><span class="code">Ending_t = Beginning_t + Receipt_t - Demand_t</span></div>
+            <div class="formula"><div class="label">缺口</div><span class="code">Shortage_t = max(0, -Ending_t)</span></div>
+            <div class="formula"><div class="label">动作校验</div><span class="code">提前 PO 后逐周重算，不只看总量</span></div>
+          </div>
+        </div>
+        <div class="kpis">
+          <div class="kpi blue"><div class="value">+2,000</div><div class="name">静态总量盈余，容易得出错误结论</div></div>
+          <div class="kpi red"><div class="value" id="c1-first">08-31</div><div class="name">首次缺料周</div></div>
+          <div class="kpi red"><div class="value" id="c1-max">2,000</div><div class="name">最大缺口</div></div>
+          <div class="kpi green"><div class="value" id="c1-after">0</div><div class="name">提前 4,000 件后的最大缺口</div></div>
+        </div>
+        <div class="split">
+          <div class="card">
+            <div class="section-title"><h3>周度库存投影</h3><span>拖动不是填数，按钮触发动作重算</span></div>
+            <div class="controls">
+              <button class="btn" id="btn-c1-apply">把 4,000 PO 提前到第 5 周</button>
+              <button class="btn secondary" id="btn-c1-reset">恢复原到货计划</button>
+            </div>
+            <div class="chart-frame" id="chart-c1"></div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>逻辑与步骤</h3><span>第二道防线：库存计划</span></div>
+            <div class="method-list">
+              <div class="method"><b>先做周度投影</b><span>按周递推库存，未来收货不能抵消已经发生的中间周缺料。</span></div>
+              <div class="method"><b>识别首次风险周</b><span>EndingInventory 低于 0 为缺料，低于安全库存为预警。</span></div>
+              <div class="method"><b>模拟动作但不写回</b><span>只在内存中提前 PO 到货，再跑一遍投影。</span></div>
+              <div class="method"><b>输出采购协同建议</b><span>建议提前或拆单，并要求计划/采购确认供应商可承诺日期。</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="callout">业务解释：这类风险体现“总量算法”的盲区。SupplyPilot 不用库存 + PO - 总需求做判断，而是按周检查每一个节点是否低于安全线。</div>
+      </article>
+
+      <article class="panel" id="case2">
+        <div class="hero-card">
+          <div class="case-head">
+            <div>
+              <h2>需求下降 40%，如何把冗余变成可执行的 PO 动作？</h2>
+              <p>PRODUCT_A 周需求从 1,000 降到 600，BOM 拆解后 MAT-A 形成 9,000 件期末冗余。系统模拟取消未锁定 PO，并验证不会制造新缺料。</p>
+            </div>
+            <span class="priority amber">库存冗余</span>
+          </div>
+          <div class="formula-strip">
+            <div class="formula"><div class="label">冗余</div><span class="code">Excess = ProjectedSupply - ForecastDemand - SafetyStock</span></div>
+            <div class="formula"><div class="label">金额</div><span class="code">ExcessValue = ExcessQty × UnitCost</span></div>
+            <div class="formula"><div class="label">约束</div><span class="code">不为了降冗余制造新缺料</span></div>
+          </div>
+        </div>
+        <div class="kpis">
+          <div class="kpi amber"><div class="value">9,000</div><div class="name">动作前期末冗余</div></div>
+          <div class="kpi green"><div class="value" id="c2-after-excess">1,000</div><div class="name">取消 8,000 PO 后冗余</div></div>
+          <div class="kpi blue"><div class="value">0</div><div class="name">动作后新增缺料</div></div>
+          <div class="kpi amber"><div class="value">需审批</div><div class="name">采购经理 + 计划经理</div></div>
+        </div>
+        <div class="split">
+          <div class="card">
+            <div class="section-title"><h3>动作前后对比</h3><span>PO 取消前后库存状态</span></div>
+            <div class="controls">
+              <button class="btn" id="btn-c2-apply">应用取消 8,000 件 PO</button>
+              <button class="btn secondary" id="btn-c2-reset">恢复动作前</button>
+            </div>
+            <div class="chart-frame" id="chart-c2"></div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>规则与方法</h3><span>第二道防线到第三道防线</span></div>
+            <div class="rule-grid">
+              <div class="rule"><b>消冗优先级</b><span>冻结新增采购、取消未锁定 PO、延期或拆单、调拨共用、ECN/替代、最后才报废。</span></div>
+              <div class="rule"><b>PO 可取消性</b><span>检查取消窗口、锁定量、供应商是否投产、MPQ 和取消成本。</span></div>
+              <div class="rule"><b>动作验证</b><span>每次动作后重新计算全部周度投影和安全库存缺口。</span></div>
+              <div class="rule"><b>审批边界</b><span>只生成可追溯建议，不自动取消 PO 或写回 ERP。</span></div>
+            </div>
+            <table style="margin-top: 12px;">
+              <tr><th>单据层优化</th><th>建议</th><th>结果</th></tr>
+              <tr><td>9,000 冗余组合处理</td><td>取消 6,000 + 延期 3,000</td><td>罚金 5,040；净避免成本 5,760</td></tr>
+            </table>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel" id="case3">
+        <div class="hero-card">
+          <div class="case-head">
+            <div>
+              <h2>共用料不足时，如何可解释地分配给客户？</h2>
+              <p>COMMON-M 被 5 张客户需求共同争抢。系统先扣保护量，再按冻结订单、客户优先级、缺货罚金、交期紧迫度和生命周期排序，输出每笔分配原因。</p>
+            </div>
+            <span class="priority blue">ATP 分配</span>
+          </div>
+          <div class="formula-strip">
+            <div class="formula"><div class="label">可分配量</div><span class="code">Allocatable = OnHand + Supply - ProtectedQty</span></div>
+            <div class="formula"><div class="label">优先级得分</div><span class="code">Score = Frozen + Customer + Penalty + Urgency + Lifecycle</span></div>
+            <div class="formula"><div class="label">分配约束</div><span class="code">ΣAllocated ≤ Allocatable</span></div>
+          </div>
+        </div>
+        <div class="kpis">
+          <div class="kpi blue"><div class="value">10,500</div><div class="name">需求合计</div></div>
+          <div class="kpi green"><div class="value" id="c3-supply">12,000</div><div class="name">可分配供给</div></div>
+          <div class="kpi red"><div class="value" id="c3-short">0</div><div class="name">未满足需求</div></div>
+          <div class="kpi blue"><div class="value">原因码</div><div class="name">每笔分配均可追溯</div></div>
+        </div>
+        <div class="split">
+          <div class="card">
+            <div class="section-title"><h3>拖动供给，查看 ATP 分配变化</h3><span>供给越紧，越能体现排序规则</span></div>
+            <div class="controls">
+              <span class="pill">可分配供给：<b id="c3-supply-label">12,000</b></span>
+              <input type="range" id="range-c3" min="2000" max="12000" step="500" value="12000" />
+            </div>
+            <div class="chart-frame" id="chart-c3"></div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>分配队列</h3><span>冻结订单优先</span></div>
+            <table>
+              <tr><th>需求单</th><th>客户</th><th>需求</th><th>原因</th></tr>
+              <tr><td>ATP-001</td><td>CUST-A</td><td>3,000</td><td><span class="tag blue">冻结</span> 优先级5 · 高停线损失</td></tr>
+              <tr><td>ATP-004</td><td>CUST-D</td><td>1,200</td><td><span class="tag blue">冻结</span> 服务件 · 交期近</td></tr>
+              <tr><td>ATP-002</td><td>CUST-B</td><td>2,500</td><td>优先级4 · Ramp-up</td></tr>
+              <tr><td>ATP-003</td><td>CUST-C</td><td>2,000</td><td>优先级3 · Mature</td></tr>
+              <tr><td>ATP-005</td><td>CUST-E</td><td>1,800</td><td><span class="tag amber">EOL</span> 尾单最低优先</td></tr>
+            </table>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel" id="case4">
+        <div class="hero-card">
+          <div class="case-head">
+            <div>
+              <h2>跨厂调拨：从哪里调、调多少、是否会伤害来源厂？</h2>
+              <p>目标工厂 EAST/CENTRAL 缺料，NORTH/SOUTH 有库存。系统先扣除来源厂保护量和未来需求，再用确定性最小成本流选择调拨通道。</p>
+            </div>
+            <span class="priority green">调拨优化</span>
+          </div>
+          <div class="formula-strip">
+            <div class="formula"><div class="label">来源可调量</div><span class="code">SourceFree = OnHand - SafetyStock - FutureDemand</span></div>
+            <div class="formula"><div class="label">通道成本</div><span class="code">Cost = FixedCost + UnitCost × Qty</span></div>
+            <div class="formula"><div class="label">目标</div><span class="code">min ΣCost，且不制造来源厂缺料</span></div>
+          </div>
+        </div>
+        <div class="kpis">
+          <div class="kpi red"><div class="value">8,500</div><div class="name">调拨前总缺口</div></div>
+          <div class="kpi green"><div class="value">0</div><div class="name">调拨后缺口</div></div>
+          <div class="kpi blue"><div class="value">8,500</div><div class="name">总调拨量</div></div>
+          <div class="kpi amber"><div class="value">9,860</div><div class="name">总调拨成本</div></div>
+        </div>
+        <div class="split">
+          <div class="card">
+            <div class="section-title"><h3>调拨网络</h3><span>虚线为不可用或低优通道</span></div>
+            <div class="chart-frame" id="chart-c4"></div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>方法步骤</h3><span>第三道防线：执行例外</span></div>
+            <div class="method-list">
+              <div class="method"><b>计算来源厂自由库存</b><span>扣除安全库存、未来需求和已分配量，避免把问题转移给来源厂。</span></div>
+              <div class="method"><b>过滤不可行通道</b><span>版本、质量状态、运输时限、工厂兼容性不满足则排除。</span></div>
+              <div class="method"><b>求最小成本流</b><span>在满足目标缺口的前提下，优先选成本最低、到货及时的路线。</span></div>
+              <div class="method"><b>生成审批动作</b><span>调拨影响两个工厂，需要来源厂、目标厂、物流和计划审批。</span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel" id="case5">
+        <div class="hero-card">
+          <div class="case-head">
+            <div>
+              <h2>采购批量优化：MOQ、MPQ、包装倍数和价格阶梯怎么一起算？</h2>
+              <p>MAT-B 净需求 4,700。系统枚举满足 MOQ/MPQ/包装倍数的可行订单量，并根据价格阶梯、持有成本、缺货成本和固定下单成本选择总成本最低方案。</p>
+            </div>
+            <span class="priority blue">新增演示</span>
+          </div>
+          <div class="formula-strip">
+            <div class="formula"><div class="label">可行批量</div><span class="code">Q = 0 或 Q ≥ MOQ，且 Q % lcm(MPQ, Pack) = 0</span></div>
+            <div class="formula"><div class="label">采购成本</div><span class="code">PurchaseCost = Q × TierPrice(Q)</span></div>
+            <div class="formula"><div class="label">总成本</div><span class="code">Total = Purchase + Holding + Shortage + Fixed</span></div>
+          </div>
+        </div>
+        <div class="kpis">
+          <div class="kpi blue"><div class="value">4,700</div><div class="name">净需求</div></div>
+          <div class="kpi green"><div class="value" id="c5-best-q">4,700</div><div class="name">推荐订货量</div></div>
+          <div class="kpi amber"><div class="value" id="c5-unit">44.5</div><div class="name">适用单价</div></div>
+          <div class="kpi blue"><div class="value" id="c5-total">209,250</div><div class="name">最低总成本</div></div>
+        </div>
+        <div class="split">
+          <div class="card">
+            <div class="section-title"><h3>候选批量成本曲线</h3><span>拖动需求，系统重新枚举可行 Q</span></div>
+            <div class="controls">
+              <span class="pill">净需求：<b id="c5-demand-label">4,700</b></span>
+              <input type="range" id="range-c5" min="1800" max="7200" step="100" value="4700" />
+            </div>
+            <div class="chart-frame" id="chart-c5"></div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>规则解释</h3><span>采购计划管理</span></div>
+            <div class="rule-grid">
+              <div class="rule"><b>MOQ</b><span>低于最小起订量时不能直接下单；要么不下，要么至少满足 MOQ。</span></div>
+              <div class="rule"><b>MPQ/包装倍数</b><span>订单量必须落在供应商可生产、可包装的离散数量上。</span></div>
+              <div class="rule"><b>价格阶梯</b><span>更大批量可能单价更低，但会带来库存持有和过时风险。</span></div>
+              <div class="rule"><b>可解释降级</b><span>不用黑盒优化器也可确定性枚举，输出每个候选的不可行原因和成本。</span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel" id="case6">
+        <div class="hero-card">
+          <div class="case-head">
+            <div>
+              <h2>预测人工调整是否真的有价值？用 FVA 追踪</h2>
+              <p>统计预测先生成基准版本，计划员基于客户确认做人工调整，再形成共识版本。实际需求产生后，用 FVA 判断人工调整是否改善预测，而不是提前宣称有效。</p>
+            </div>
+            <span class="priority green">新增演示</span>
+          </div>
+          <div class="formula-strip">
+            <div class="formula"><div class="label">调整价值</div><span class="code">FVA = ErrorBeforeAdjustment - ErrorAfterAdjustment</span></div>
+            <div class="formula"><div class="label">版本链</div><span class="code">Statistical → Manual → Consensus</span></div>
+            <div class="formula"><div class="label">边界</div><span class="code">无实际需求时只记录待评价状态</span></div>
+          </div>
+        </div>
+        <div class="kpis">
+          <div class="kpi blue"><div class="value">STAT</div><div class="name">统计预测版本</div></div>
+          <div class="kpi amber"><div class="value">MANU</div><div class="name">人工调整版本</div></div>
+          <div class="kpi green"><div class="value">CONS</div><div class="name">已审批共识版本</div></div>
+          <div class="kpi green"><div class="value" id="c6-fva">+0.091</div><div class="name">FVA 改善值</div></div>
+        </div>
+        <div class="split">
+          <div class="card">
+            <div class="section-title"><h3>误差对比</h3><span>有实际需求后才评价调整效果</span></div>
+            <div class="controls">
+              <button class="btn" id="btn-c6-actuals">显示实际需求后的 FVA</button>
+              <button class="btn secondary" id="btn-c6-pending">切回待评价状态</button>
+            </div>
+            <div class="chart-frame" id="chart-c6"></div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>版本治理步骤</h3><span>第一道防线：需求预测</span></div>
+            <div class="method-list">
+              <div class="method"><b>统计基线</b><span>用历史需求和滚动回测生成统计预测，不让大模型编造数量。</span></div>
+              <div class="method"><b>人工调整</b><span>只允许带原因码和证据的调整，例如客户确认、项目变化、渠道备货。</span></div>
+              <div class="method"><b>审批共识</b><span>销售、计划、供应链确认后生成共识版本，后续 BOM/MRP 默认使用它。</span></div>
+              <div class="method"><b>FVA 回看</b><span>实际需求产生后比较调整前后误差，正值说明人工判断改善预测。</span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <div class="source-note">
+        数据来源：仓库内 <code>data/demo_*.csv</code> 与 <code>examples/run_cases.py</code>、<code>examples/run_phase2_cases.py</code> 的合成 Demo 结果。所有数值仅用于说明项目逻辑，不代表真实企业数据、真实节省金额或生产准确率。
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  const svgns = "http://www.w3.org/2000/svg";
+  const fmt = (n) => Number(n).toLocaleString("zh-CN");
+
+  function clear(el) { el.innerHTML = ""; }
+  function makeSvg(parent, viewBox = "0 0 760 360") {
+    clear(parent);
+    const svg = document.createElementNS(svgns, "svg");
+    svg.setAttribute("viewBox", viewBox);
+    svg.setAttribute("role", "img");
+    parent.appendChild(svg);
+    return svg;
+  }
+  function node(name, attrs = {}, text = "") {
+    const el = document.createElementNS(svgns, name);
+    Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+    if (text !== "") el.textContent = text;
+    return el;
+  }
+  function scaleLinear(min, max, a, b) {
+    return (value) => a + ((value - min) / (max - min || 1)) * (b - a);
+  }
+  function drawGrid(svg, x0, y0, w, h, ticks = 5) {
+    for (let i = 0; i <= ticks; i += 1) {
+      const y = y0 + (h / ticks) * i;
+      svg.appendChild(node("line", { x1: x0, y1: y, x2: x0 + w, y2: y, class: "grid" }));
+    }
+    svg.appendChild(node("line", { x1: x0, y1: y0 + h, x2: x0 + w, y2: y0 + h, class: "axis" }));
+    svg.appendChild(node("line", { x1: x0, y1: y0, x2: x0, y2: y0 + h, class: "axis" }));
+  }
+  function pathFrom(points) {
+    return points.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+  }
+
+  const weeks = ["07-27","08-03","08-10","08-17","08-24","08-31","09-07","09-14","09-21","09-28","10-05","10-12","10-19"];
+  const c1Original = [4000, 3000, 2000, 1000, 0, -1000, -2000, 7000, 6000, 5000, 4000, 3000, 2000];
+  const c1Advanced = [4000, 3000, 2000, 1000, 3000, 2000, 1000, 6000, 5000, 4000, 3000, 2000, 1000];
+
+  function renderProjection(data) {
+    const svg = makeSvg(document.getElementById("chart-c1"));
+    const x0 = 54, y0 = 28, w = 660, h = 268;
+    const min = -2500, max = 7500;
+    const sx = (i) => x0 + (w / (data.length - 1)) * i;
+    const sy = scaleLinear(min, max, y0 + h, y0);
+    drawGrid(svg, x0, y0, w, h);
+    const zero = sy(0);
+    svg.appendChild(node("line", { x1: x0, y1: zero, x2: x0 + w, y2: zero, stroke: "#dc2626", "stroke-dasharray": "5 5", "stroke-width": "1.5" }));
+    svg.appendChild(node("text", { x: x0 + w - 82, y: zero - 8, fill: "#dc2626", "font-size": "11" }, "库存=0"));
+    const points = data.map((d, i) => [sx(i), sy(d)]);
+    svg.appendChild(node("path", { d: pathFrom(points), fill: "none", stroke: "#2563eb", "stroke-width": "4", "stroke-linecap": "round", "stroke-linejoin": "round" }));
+    points.forEach((p, i) => {
+      const risky = data[i] < 0;
+      svg.appendChild(node("circle", { cx: p[0], cy: p[1], r: risky ? 5.5 : 4.5, fill: risky ? "#dc2626" : "#2563eb", stroke: "#fff", "stroke-width": "2" }));
+      if (i % 2 === 0) svg.appendChild(node("text", { x: p[0] - 15, y: y0 + h + 24, class: "small-label" }, weeks[i]));
+    });
+    [-2000, 0, 2000, 4000, 6000].forEach((t) => {
+      svg.appendChild(node("text", { x: 8, y: sy(t) + 4, class: "label" }, fmt(t)));
+    });
+    svg.appendChild(node("text", { x: 54, y: 338, class: "label" }, "周度期末库存，负数表示实际缺料"));
+  }
+
+  function renderExcess(after = false) {
+    const svg = makeSvg(document.getElementById("chart-c2"));
+    const x0 = 62, y0 = 34, w = 650, h = 260;
+    const labels = ["在途 PO", "期末冗余", "最大缺口"];
+    const before = [16000, 9000, 0];
+    const afterData = after ? [8000, 1000, 0] : before;
+    const max = 17000;
+    drawGrid(svg, x0, y0, w, h);
+    const bw = 48, group = w / labels.length;
+    labels.forEach((label, i) => {
+      const gx = x0 + group * i + group / 2;
+      const bh1 = before[i] / max * h;
+      const bh2 = afterData[i] / max * h;
+      svg.appendChild(node("rect", { x: gx - bw - 5, y: y0 + h - bh1, width: bw, height: bh1, rx: 8, fill: "#f59e0b" }));
+      svg.appendChild(node("rect", { x: gx + 5, y: y0 + h - bh2, width: bw, height: bh2, rx: 8, fill: after ? "#16a34a" : "#94a3b8" }));
+      svg.appendChild(node("text", { x: gx - bw - 2, y: y0 + h - bh1 - 8, class: "dark-label", "text-anchor": "middle" }, fmt(before[i])));
+      svg.appendChild(node("text", { x: gx + 29, y: y0 + h - bh2 - 8, class: "dark-label", "text-anchor": "middle" }, fmt(afterData[i])));
+      svg.appendChild(node("text", { x: gx, y: y0 + h + 28, class: "label", "text-anchor": "middle" }, label));
+    });
+    svg.appendChild(node("circle", { cx: 570, cy: 28, r: 6, fill: "#f59e0b" }));
+    svg.appendChild(node("text", { x: 582, y: 32, class: "label" }, "动作前"));
+    svg.appendChild(node("circle", { cx: 650, cy: 28, r: 6, fill: after ? "#16a34a" : "#94a3b8" }));
+    svg.appendChild(node("text", { x: 662, y: 32, class: "label" }, "动作后"));
+  }
+
+  const atp = [
+    { id: "ATP-001", qty: 3000 },
+    { id: "ATP-004", qty: 1200 },
+    { id: "ATP-002", qty: 2500 },
+    { id: "ATP-003", qty: 2000 },
+    { id: "ATP-005", qty: 1800 }
+  ];
+  function renderAtp(available) {
+    document.getElementById("c3-supply").textContent = fmt(available);
+    document.getElementById("c3-supply-label").textContent = fmt(available);
+    const svg = makeSvg(document.getElementById("chart-c3"));
+    const x0 = 90, y0 = 34, w = 600, h = 260;
+    const max = 3300;
+    let remaining = available;
+    let totalShort = 0;
+    drawGrid(svg, x0, y0, w, h);
+    atp.forEach((d, i) => {
+      const x = x0 + i * (w / atp.length) + 24;
+      const bw = 70;
+      const alloc = Math.max(0, Math.min(d.qty, remaining));
+      remaining -= alloc;
+      const short = d.qty - alloc;
+      totalShort += short;
+      const allocH = alloc / max * h;
+      const shortH = short / max * h;
+      svg.appendChild(node("rect", { x, y: y0 + h - allocH, width: bw, height: allocH, rx: 7, fill: "#2563eb" }));
+      if (short > 0) {
+        svg.appendChild(node("rect", { x, y: y0 + h - allocH - shortH, width: bw, height: shortH, rx: 7, fill: "#dc2626" }));
+      }
+      svg.appendChild(node("text", { x: x + bw / 2, y: y0 + h + 22, class: "small-label", "text-anchor": "middle" }, d.id));
+      svg.appendChild(node("text", { x: x + bw / 2, y: y0 + h - allocH - shortH - 8, class: "dark-label", "text-anchor": "middle" }, fmt(alloc)));
+      if (short > 0) svg.appendChild(node("text", { x: x + bw / 2, y: y0 + h - allocH - 8, fill: "#fff", "font-size": "11", "text-anchor": "middle" }, "-" + fmt(short)));
+    });
+    document.getElementById("c3-short").textContent = fmt(totalShort);
+  }
+
+  function renderTransfer() {
+    const svg = makeSvg(document.getElementById("chart-c4"));
+    const nodes = [
+      { id: "NORTH", x: 130, y: 105, type: "src", text: "NORTH\\n可调 5,000" },
+      { id: "SOUTH", x: 130, y: 250, type: "src", text: "SOUTH\\n可调 3,500" },
+      { id: "EAST", x: 610, y: 105, type: "dst", text: "EAST\\n缺口 0" },
+      { id: "CENTRAL", x: 610, y: 250, type: "dst", text: "CENTRAL\\n缺口 0" }
+    ];
+    const byId = Object.fromEntries(nodes.map((n) => [n.id, n]));
+    function link(a, b, text, color, width, dash) {
+      const A = byId[a], B = byId[b];
+      svg.appendChild(node("line", { x1: A.x + 70, y1: A.y, x2: B.x - 70, y2: B.y, stroke: color, "stroke-width": width, "stroke-dasharray": dash || "", "stroke-linecap": "round" }));
+      svg.appendChild(node("text", { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 - 8, fill: color, "font-size": "13", "font-weight": "800", "text-anchor": "middle" }, text));
+    }
+    link("NORTH", "EAST", "5,000", "#2563eb", 8);
+    link("SOUTH", "CENTRAL", "3,500", "#16a34a", 7);
+    link("NORTH", "CENTRAL", "可行但成本高", "#cbd5e1", 2, "5 6");
+    link("SOUTH", "EAST", "通道排除", "#cbd5e1", 2, "5 6");
+    nodes.forEach((n) => {
+      svg.appendChild(node("rect", { x: n.x - 70, y: n.y - 40, width: 140, height: 80, rx: 16, fill: n.type === "src" ? "#dbeafe" : "#dcfce7", stroke: n.type === "src" ? "#93c5fd" : "#86efac" }));
+      const lines = n.text.split("\\n");
+      svg.appendChild(node("text", { x: n.x, y: n.y - 8, class: "dark-label", "text-anchor": "middle" }, lines[0]));
+      svg.appendChild(node("text", { x: n.x, y: n.y + 14, class: "label", "text-anchor": "middle" }, lines[1]));
+    });
+    svg.appendChild(node("text", { x: 74, y: 330, class: "label" }, "来源保护量、未来需求、质量/版本和运输时限在求解前已被约束。"));
+  }
+
+  function priceFor(q) {
+    if (q >= 7000) return 43.8;
+    if (q >= 4500) return 44.5;
+    if (q >= 2500) return 46.0;
+    return 48.0;
+  }
+  function optimizeLot(demand) {
+    const moq = 500, step = 100, unitHolding = 0.35, unitShortage = 80, fixed = 100;
+    const candidates = [];
+    for (let q = 0; q <= 9000; q += step) {
+      if (q > 0 && q < moq) continue;
+      const price = priceFor(q);
+      const purchase = q * price;
+      const holding = Math.max(0, q - demand) * unitHolding;
+      const shortage = Math.max(0, demand - q) * unitShortage;
+      const total = purchase + holding + shortage + (q > 0 ? fixed : 0);
+      candidates.push({ q, price, total, feasible: true });
+    }
+    let best = candidates.reduce((a, b) => b.total < a.total ? b : a, candidates[0]);
+    return { best, candidates };
+  }
+  function renderLot(demand) {
+    const result = optimizeLot(demand);
+    document.getElementById("c5-demand-label").textContent = fmt(demand);
+    document.getElementById("c5-best-q").textContent = fmt(result.best.q);
+    document.getElementById("c5-unit").textContent = result.best.price.toFixed(1);
+    document.getElementById("c5-total").textContent = fmt(Math.round(result.best.total));
+    const svg = makeSvg(document.getElementById("chart-c5"));
+    const x0 = 58, y0 = 32, w = 650, h = 260;
+    const sample = result.candidates.filter((d) => d.q >= Math.max(0, demand - 1800) && d.q <= demand + 2200);
+    const minQ = Math.min(...sample.map((d) => d.q));
+    const maxQ = Math.max(...sample.map((d) => d.q));
+    const minC = Math.min(...sample.map((d) => d.total));
+    const maxC = Math.max(...sample.map((d) => d.total));
+    const sx = scaleLinear(minQ, maxQ, x0, x0 + w);
+    const sy = scaleLinear(minC * .995, maxC * 1.005, y0 + h, y0);
+    drawGrid(svg, x0, y0, w, h);
+    const pts = sample.map((d) => [sx(d.q), sy(d.total)]);
+    svg.appendChild(node("path", { d: pathFrom(pts), fill: "none", stroke: "#2563eb", "stroke-width": "3", "stroke-linejoin": "round" }));
+    sample.forEach((d) => {
+      const isBest = d.q === result.best.q;
+      svg.appendChild(node("circle", { cx: sx(d.q), cy: sy(d.total), r: isBest ? 6 : 3, fill: isBest ? "#16a34a" : "#2563eb", stroke: "#fff", "stroke-width": isBest ? 2 : 0 }));
+      if (isBest) {
+        svg.appendChild(node("text", { x: sx(d.q), y: sy(d.total) - 14, fill: "#16a34a", "font-size": "12", "font-weight": "800", "text-anchor": "middle" }, `最优 Q=${fmt(d.q)}`));
+      }
+    });
+    [minQ, demand, maxQ].forEach((q) => svg.appendChild(node("text", { x: sx(q), y: y0 + h + 24, class: "label", "text-anchor": "middle" }, fmt(Math.round(q)))));
+    svg.appendChild(node("text", { x: 14, y: 44, class: "label" }, "总成本"));
+    svg.appendChild(node("text", { x: 604, y: 330, class: "label" }, "订单量 Q"));
+  }
+
+  function renderFva(hasActuals) {
+    const svg = makeSvg(document.getElementById("chart-c6"));
+    const before = hasActuals ? 0.0908 : 0;
+    const after = hasActuals ? 0.0000 : 0;
+    const fva = hasActuals ? 0.0908 : null;
+    document.getElementById("c6-fva").textContent = hasActuals ? "+0.091" : "待评价";
+    const x0 = 80, y0 = 40, w = 600, h = 250;
+    drawGrid(svg, x0, y0, w, h);
+    const labels = ["统计预测误差", "人工调整后误差", "FVA 改善"];
+    const vals = [before, after, fva || 0];
+    const colors = ["#f59e0b", "#16a34a", hasActuals ? "#2563eb" : "#94a3b8"];
+    labels.forEach((label, i) => {
+      const bw = 90;
+      const x = x0 + i * 190 + 55;
+      const bh = hasActuals ? Math.max(4, vals[i] / .11 * h) : 8;
+      svg.appendChild(node("rect", { x, y: y0 + h - bh, width: bw, height: bh, rx: 10, fill: colors[i] }));
+      svg.appendChild(node("text", { x: x + bw / 2, y: y0 + h + 24, class: "label", "text-anchor": "middle" }, label));
+      svg.appendChild(node("text", { x: x + bw / 2, y: y0 + h - bh - 10, class: "dark-label", "text-anchor": "middle" }, hasActuals ? vals[i].toFixed(4) : "PENDING"));
+    });
+    svg.appendChild(node("text", { x: 74, y: 330, class: "label" }, hasActuals ? "正 FVA：人工调整降低了误差。" : "尚无实际需求时只保留版本链和待评价状态，不提前声称改善。"));
+  }
+
+  document.querySelectorAll(".case-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".case-tab").forEach((item) => item.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach((item) => item.classList.remove("active"));
+      tab.classList.add("active");
+      document.getElementById(tab.dataset.case).classList.add("active");
+      requestAnimationFrame(renderAll);
+    });
+  });
+
+  document.getElementById("btn-c1-apply").addEventListener("click", () => {
+    renderProjection(c1Advanced);
+    document.getElementById("c1-first").textContent = "无";
+    document.getElementById("c1-max").textContent = "0";
+  });
+  document.getElementById("btn-c1-reset").addEventListener("click", () => {
+    renderProjection(c1Original);
+    document.getElementById("c1-first").textContent = "08-31";
+    document.getElementById("c1-max").textContent = "2,000";
+  });
+  document.getElementById("btn-c2-apply").addEventListener("click", () => renderExcess(true));
+  document.getElementById("btn-c2-reset").addEventListener("click", () => renderExcess(false));
+  document.getElementById("range-c3").addEventListener("input", (e) => renderAtp(Number(e.target.value)));
+  document.getElementById("range-c5").addEventListener("input", (e) => renderLot(Number(e.target.value)));
+  document.getElementById("btn-c6-actuals").addEventListener("click", () => renderFva(true));
+  document.getElementById("btn-c6-pending").addEventListener("click", () => renderFva(false));
+
+  function renderAll() {
+    renderProjection(c1Original);
+    renderExcess(false);
+    renderAtp(Number(document.getElementById("range-c3").value));
+    renderTransfer();
+    renderLot(Number(document.getElementById("range-c5").value));
+    renderFva(true);
+  }
+  window.addEventListener("resize", renderAll);
+  renderAll();
+</script>
+</body>
+</html>
