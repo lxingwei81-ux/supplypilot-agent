@@ -3,16 +3,31 @@
 本目录用于 GitHub 展示和项目面试讲解。
 
 - `supplypilot-showcase.html` 是自包含交互式案例页，不依赖 CDN 或后端服务。
-- `index.html` 会跳转到案例页，便于 GitHub Pages 使用站点根入口。
+- 仓库根目录的 `index.html` 会跳转到案例页，便于 Gitee Pages 选择“仓库根目录”时直接打开。
+- 本目录的 `index.html` 也会跳转到案例页，便于 GitHub Pages 或 Gitee Pages 选择 `docs/showcase` 目录时使用站点根入口。
 - `open-showcase.bat` 用于 Windows 本地单机双击打开网页。
 
 在线演示：
 
 ```text
+https://chenxingwei1.gitee.io/supply-chain-pilot-agent/
+```
+
+GitHub 备用地址：
+
+```text
 https://lxingwei81-ux.github.io/supplypilot-agent/
 ```
 
-注意：在 GitHub 仓库文件列表中直接点击 `.html` 文件会看到源码，这是 GitHub 文件浏览器的默认行为；需要使用上面的 GitHub Pages 链接，或下载仓库后在本机打开。
+注意：在 Gitee/GitHub 仓库文件列表中直接点击 `.html` 文件会看到源码，这是代码托管平台文件浏览器的默认行为；需要使用上面的 Pages 链接，或下载仓库后在本机打开。
+
+Gitee Pages 推荐配置：
+
+```text
+分支：main
+部署目录：/
+入口文件：index.html
+```
 
 本地预览：
 
