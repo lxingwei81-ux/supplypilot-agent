@@ -504,18 +504,18 @@
 <div class="shell">
   <header class="topbar">
     <div>
-      <div class="eyebrow">Interactive supply chain agent demo</div>
+      <div class="eyebrow">供应链智能体交互演示</div>
       <h1>SupplyPilot 供应链智能体交互案例展示</h1>
-      <p class="lead">用 6 个可复现 Demo 展示项目能力：从需求变化、周度投影、库存消冗，到共用料 ATP、多工厂调拨、采购批量优化和预测人工调整。LLM 只负责解释与编排，数量、金额、风险和动作影响全部由确定性规则计算。</p>
+      <p class="lead">用 8 个可复现 Demo 展示项目能力：从需求变化、周度投影、库存消冗，到共用料 ATP、多工厂调拨、采购批量优化、预测人工调整、ECN 旧料消耗和供应商交付风险。LLM 只负责解释与编排，数量、金额、风险和动作影响全部由确定性规则计算。</p>
       <div class="meta-row">
         <span class="pill">Python + FastAPI + Streamlit</span>
         <span class="pill">三道防线：预测 · 库存 · 执行</span>
         <span class="pill">140 项测试</span>
-        <span class="pill">Synthetic Demo Data</span>
+        <span class="pill">合成演示数据</span>
       </div>
     </div>
     <div class="status-card">
-      <div class="num">6</div>
+      <div class="num">8</div>
       <div class="sub">个交互案例，覆盖预测、库存、采购协同和动作前后验证。</div>
       <div class="meta-row">
         <span class="pill dark">不写回 ERP</span>
@@ -526,7 +526,7 @@
 
   <main class="body-grid">
     <aside class="sidebar">
-      <div class="sidebar-title">CASE NAVIGATION</div>
+      <div class="sidebar-title">案例导航</div>
       <button class="case-tab active" data-case="case1">
         <span class="case-no">01</span>
         <span><span class="case-name">中间周缺料</span><span class="case-desc">总量不缺但到货太晚</span></span>
@@ -551,6 +551,14 @@
         <span class="case-no">06</span>
         <span><span class="case-name">预测调整 FVA</span><span class="case-desc">统计预测到共识版本</span></span>
       </button>
+      <button class="case-tab" data-case="case7">
+        <span class="case-no">07</span>
+        <span><span class="case-name">ECN 旧料消耗</span><span class="case-desc">切换验证与库存消耗</span></span>
+      </button>
+      <button class="case-tab" data-case="case8">
+        <span class="case-no">08</span>
+        <span><span class="case-name">供应商交付风险</span><span class="case-desc">准时率、可靠性和升级</span></span>
+      </button>
 
       <div class="defense-map">
         <b>展示主线</b>
@@ -569,8 +577,8 @@
             <span class="priority red">动态缺料</span>
           </div>
           <div class="formula-strip">
-            <div class="formula"><div class="label">库存递推</div><span class="code">Ending_t = Beginning_t + Receipt_t - Demand_t</span></div>
-            <div class="formula"><div class="label">缺口</div><span class="code">Shortage_t = max(0, -Ending_t)</span></div>
+            <div class="formula"><div class="label">库存递推</div><span class="code">期末库存 = 期初库存 + 本周到货 - 本周需求</span></div>
+            <div class="formula"><div class="label">缺口</div><span class="code">缺料量 = 若期末库存小于 0，则取其绝对值，否则为 0</span></div>
             <div class="formula"><div class="label">动作校验</div><span class="code">提前 PO 后逐周重算，不只看总量</span></div>
           </div>
         </div>
@@ -593,7 +601,7 @@
             <div class="section-title"><h3>逻辑与步骤</h3><span>第二道防线：库存计划</span></div>
             <div class="method-list">
               <div class="method"><b>先做周度投影</b><span>按周递推库存，未来收货不能抵消已经发生的中间周缺料。</span></div>
-              <div class="method"><b>识别首次风险周</b><span>EndingInventory 低于 0 为缺料，低于安全库存为预警。</span></div>
+              <div class="method"><b>识别首次风险周</b><span>期末库存低于 0 为缺料，低于安全库存为预警。</span></div>
               <div class="method"><b>模拟动作但不写回</b><span>只在内存中提前 PO 到货，再跑一遍投影。</span></div>
               <div class="method"><b>输出采购协同建议</b><span>建议提前或拆单，并要求计划/采购确认供应商可承诺日期。</span></div>
             </div>
@@ -612,8 +620,8 @@
             <span class="priority amber">库存冗余</span>
           </div>
           <div class="formula-strip">
-            <div class="formula"><div class="label">冗余</div><span class="code">Excess = ProjectedSupply - ForecastDemand - SafetyStock</span></div>
-            <div class="formula"><div class="label">金额</div><span class="code">ExcessValue = ExcessQty × UnitCost</span></div>
+            <div class="formula"><div class="label">冗余</div><span class="code">冗余量 = 预计供应 - 预测需求 - 安全库存 - 保留需求</span></div>
+            <div class="formula"><div class="label">金额</div><span class="code">冗余金额 = 冗余数量 × 单位成本</span></div>
             <div class="formula"><div class="label">约束</div><span class="code">不为了降冗余制造新缺料</span></div>
           </div>
         </div>
@@ -658,9 +666,9 @@
             <span class="priority blue">ATP 分配</span>
           </div>
           <div class="formula-strip">
-            <div class="formula"><div class="label">可分配量</div><span class="code">Allocatable = OnHand + Supply - ProtectedQty</span></div>
-            <div class="formula"><div class="label">优先级得分</div><span class="code">Score = Frozen + Customer + Penalty + Urgency + Lifecycle</span></div>
-            <div class="formula"><div class="label">分配约束</div><span class="code">ΣAllocated ≤ Allocatable</span></div>
+            <div class="formula"><div class="label">可分配量</div><span class="code">可分配量 = 现有库存 + 已确认供给 - 保护量</span></div>
+            <div class="formula"><div class="label">优先级得分</div><span class="code">优先得分 = 冻结订单 + 客户优先级 + 缺货损失 + 交期紧迫度 + 生命周期权重</span></div>
+            <div class="formula"><div class="label">分配约束</div><span class="code">已分配总量 ≤ 可分配量</span></div>
           </div>
         </div>
         <div class="kpis">
@@ -702,9 +710,9 @@
             <span class="priority green">调拨优化</span>
           </div>
           <div class="formula-strip">
-            <div class="formula"><div class="label">来源可调量</div><span class="code">SourceFree = OnHand - SafetyStock - FutureDemand</span></div>
-            <div class="formula"><div class="label">通道成本</div><span class="code">Cost = FixedCost + UnitCost × Qty</span></div>
-            <div class="formula"><div class="label">目标</div><span class="code">min ΣCost，且不制造来源厂缺料</span></div>
+            <div class="formula"><div class="label">来源可调量</div><span class="code">来源可调量 = 来源库存 - 安全库存 - 未来需求 - 已分配量</span></div>
+            <div class="formula"><div class="label">通道成本</div><span class="code">调拨成本 = 固定运输费 + 单件运输费 × 调拨数量</span></div>
+            <div class="formula"><div class="label">目标</div><span class="code">目标：在不制造来源厂缺料的前提下，使总调拨成本最低</span></div>
           </div>
         </div>
         <div class="kpis">
@@ -740,9 +748,9 @@
             <span class="priority blue">新增演示</span>
           </div>
           <div class="formula-strip">
-            <div class="formula"><div class="label">可行批量</div><span class="code">Q = 0 或 Q ≥ MOQ，且 Q % lcm(MPQ, Pack) = 0</span></div>
-            <div class="formula"><div class="label">采购成本</div><span class="code">PurchaseCost = Q × TierPrice(Q)</span></div>
-            <div class="formula"><div class="label">总成本</div><span class="code">Total = Purchase + Holding + Shortage + Fixed</span></div>
+            <div class="formula"><div class="label">可行批量</div><span class="code">订货量 = 0，或订货量 ≥ 最小起订量，且符合生产批量与包装倍数</span></div>
+            <div class="formula"><div class="label">采购成本</div><span class="code">采购金额 = 订货量 × 当前价格阶梯单价</span></div>
+            <div class="formula"><div class="label">总成本</div><span class="code">总成本 = 采购金额 + 持有成本 + 缺货成本 + 固定下单成本</span></div>
           </div>
         </div>
         <div class="kpis">
@@ -753,7 +761,7 @@
         </div>
         <div class="split">
           <div class="card">
-            <div class="section-title"><h3>候选批量成本曲线</h3><span>拖动需求，系统重新枚举可行 Q</span></div>
+            <div class="section-title"><h3>候选批量成本曲线</h3><span>拖动需求，系统重新枚举可行订货量</span></div>
             <div class="controls">
               <span class="pill">净需求：<b id="c5-demand-label">4,700</b></span>
               <input type="range" id="range-c5" min="1800" max="7200" step="100" value="4700" />
@@ -782,15 +790,15 @@
             <span class="priority green">新增演示</span>
           </div>
           <div class="formula-strip">
-            <div class="formula"><div class="label">调整价值</div><span class="code">FVA = ErrorBeforeAdjustment - ErrorAfterAdjustment</span></div>
-            <div class="formula"><div class="label">版本链</div><span class="code">Statistical → Manual → Consensus</span></div>
+            <div class="formula"><div class="label">调整价值</div><span class="code">预测调整价值 = 调整前误差 - 调整后误差</span></div>
+            <div class="formula"><div class="label">版本链</div><span class="code">统计预测版本 → 人工调整版本 → 共识预测版本</span></div>
             <div class="formula"><div class="label">边界</div><span class="code">无实际需求时只记录待评价状态</span></div>
           </div>
         </div>
         <div class="kpis">
-          <div class="kpi blue"><div class="value">STAT</div><div class="name">统计预测版本</div></div>
-          <div class="kpi amber"><div class="value">MANU</div><div class="name">人工调整版本</div></div>
-          <div class="kpi green"><div class="value">CONS</div><div class="name">已审批共识版本</div></div>
+          <div class="kpi blue"><div class="value">统计版</div><div class="name">统计预测版本</div></div>
+          <div class="kpi amber"><div class="value">调整版</div><div class="name">人工调整版本</div></div>
+          <div class="kpi green"><div class="value">共识版</div><div class="name">已审批共识版本</div></div>
           <div class="kpi green"><div class="value" id="c6-fva">+0.091</div><div class="name">FVA 改善值</div></div>
         </div>
         <div class="split">
@@ -809,6 +817,91 @@
               <div class="method"><b>人工调整</b><span>只允许带原因码和证据的调整，例如客户确认、项目变化、渠道备货。</span></div>
               <div class="method"><b>审批共识</b><span>销售、计划、供应链确认后生成共识版本，后续 BOM/MRP 默认使用它。</span></div>
               <div class="method"><b>FVA 回看</b><span>实际需求产生后比较调整前后误差，正值说明人工判断改善预测。</span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel" id="case7">
+        <div class="hero-card">
+          <div class="case-head">
+            <div>
+              <h2>ECN 切换前，旧料库存如何消耗而不影响新品质量？</h2>
+              <p>MAT-A 将从旧版本切换到新版本。系统先判断 ECN 验证状态，再计算旧料可消耗窗口、切换后风险库存和审批边界，避免“新旧料混用”或旧料直接变成呆滞。</p>
+            </div>
+            <span class="priority amber">ECN 消耗</span>
+          </div>
+          <div class="formula-strip">
+            <div class="formula"><div class="label">旧料可用</div><span class="code">旧料可消耗量 = 旧料库存 + 旧料在途 - 切换前需求 - 安全库存</span></div>
+            <div class="formula"><div class="label">风险库存</div><span class="code">风险库存 = 切换日后仍无法被批准消耗的旧料数量</span></div>
+            <div class="formula"><div class="label">验证链路</div><span class="code">规格评审 → 试产验证 → 质量批准 → 正式生效</span></div>
+          </div>
+        </div>
+        <div class="kpis">
+          <div class="kpi amber"><div class="value">5,200</div><div class="name">切换前旧料风险库存</div></div>
+          <div class="kpi green"><div class="value" id="c7-risk">800</div><div class="name">旧料优先消耗后风险库存</div></div>
+          <div class="kpi blue"><div class="value" id="c7-status">已批准</div><div class="name">ECN 验证状态</div></div>
+          <div class="kpi amber"><div class="value">需审批</div><div class="name">研发 + 质量 + 计划</div></div>
+        </div>
+        <div class="split">
+          <div class="card">
+            <div class="section-title"><h3>ECN 切换与旧料消耗</h3><span>按钮模拟“旧料优先消耗”策略</span></div>
+            <div class="controls">
+              <button class="btn" id="btn-c7-apply">应用旧料优先消耗</button>
+              <button class="btn secondary" id="btn-c7-reset">恢复切换前状态</button>
+            </div>
+            <div class="chart-frame" id="chart-c7"></div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>逻辑与规则</h3><span>库存计划 + 执行例外</span></div>
+            <div class="method-list">
+              <div class="method"><b>先看验证状态</b><span>ECN 未通过质量批准时，只能提示风险，不能建议正式切换或混用。</span></div>
+              <div class="method"><b>切换前优先消耗旧料</b><span>把切换日前仍有需求的成品优先匹配旧料，减少过时库存。</span></div>
+              <div class="method"><b>切换后锁定新料</b><span>切换日后新增需求默认使用新料，旧料只能在批准窗口内消耗。</span></div>
+              <div class="method"><b>保留审批证据</b><span>输出 ECN 编号、适用机型、质量结论、责任部门和截止日期。</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="callout">业务解释：ECN 场景不能只看库存金额。必须同时约束版本有效期、质量批准状态和客户适用范围，否则消冗动作可能制造质量或交付风险。</div>
+      </article>
+
+      <article class="panel" id="case8">
+        <div class="hero-card">
+          <div class="case-head">
+            <div>
+              <h2>供应商交付异常，什么时候需要采购升级？</h2>
+              <p>SUP-DEMO-B 多张 PO 晚到，导致 MAT-B 缺口扩大。系统用准时率、数量满足率、承诺遵从率和交期稳定性形成可靠性得分，并把高风险供应商转成可跟踪任务。</p>
+            </div>
+            <span class="priority red">供应风险</span>
+          </div>
+          <div class="formula-strip">
+            <div class="formula"><div class="label">准时率</div><span class="code">准时率 = 准时到货订单数 ÷ 订单总数</span></div>
+            <div class="formula"><div class="label">数量满足率</div><span class="code">数量满足率 = 实收数量 ÷ 承诺数量</span></div>
+            <div class="formula"><div class="label">可靠性</div><span class="code">供应商可靠性 = 准时表现 + 数量满足 + 承诺遵从 + 交期稳定性</span></div>
+          </div>
+        </div>
+        <div class="kpis">
+          <div class="kpi red"><div class="value" id="c8-otd">0%</div><div class="name">SUP-DEMO-B 准时率</div></div>
+          <div class="kpi amber"><div class="value">7.7天</div><div class="name">平均晚到天数</div></div>
+          <div class="kpi red"><div class="value" id="c8-grade">D</div><div class="name">供应商等级</div></div>
+          <div class="kpi blue"><div class="value" id="c8-action">升级</div><div class="name">采购协同动作</div></div>
+        </div>
+        <div class="split">
+          <div class="card">
+            <div class="section-title"><h3>供应商可靠性对比</h3><span>拖动 SUP-DEMO-B 准时率，观察风险等级变化</span></div>
+            <div class="controls">
+              <span class="pill">SUP-DEMO-B 准时率：<b id="c8-otd-label">0%</b></span>
+              <input type="range" id="range-c8" min="0" max="100" step="10" value="0" />
+            </div>
+            <div class="chart-frame" id="chart-c8"></div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>处置步骤</h3><span>第三道防线：供应链执行</span></div>
+            <div class="rule-grid">
+              <div class="rule"><b>供应风险识别</b><span>PO 承诺日晚于需求日、连续晚到或供应商等级下降时触发预警。</span></div>
+              <div class="rule"><b>采购动作生成</b><span>建议催交、拆单、提前、替代供应或管理层升级，但不自动修改 PO。</span></div>
+              <div class="rule"><b>任务闭环</b><span>每个动作必须有责任人、截止日期、审批状态和执行状态。</span></div>
+              <div class="rule"><b>反馈库存策略</b><span>供应可靠性改善后，后续安全库存可逐步下降；否则需要更高缓冲。</span></div>
             </div>
           </div>
         </div>
@@ -1013,12 +1106,12 @@
       const isBest = d.q === result.best.q;
       svg.appendChild(node("circle", { cx: sx(d.q), cy: sy(d.total), r: isBest ? 6 : 3, fill: isBest ? "#16a34a" : "#2563eb", stroke: "#fff", "stroke-width": isBest ? 2 : 0 }));
       if (isBest) {
-        svg.appendChild(node("text", { x: sx(d.q), y: sy(d.total) - 14, fill: "#16a34a", "font-size": "12", "font-weight": "800", "text-anchor": "middle" }, `最优 Q=${fmt(d.q)}`));
+        svg.appendChild(node("text", { x: sx(d.q), y: sy(d.total) - 14, fill: "#16a34a", "font-size": "12", "font-weight": "800", "text-anchor": "middle" }, `最优订货量=${fmt(d.q)}`));
       }
     });
     [minQ, demand, maxQ].forEach((q) => svg.appendChild(node("text", { x: sx(q), y: y0 + h + 24, class: "label", "text-anchor": "middle" }, fmt(Math.round(q)))));
     svg.appendChild(node("text", { x: 14, y: 44, class: "label" }, "总成本"));
-    svg.appendChild(node("text", { x: 604, y: 330, class: "label" }, "订单量 Q"));
+    svg.appendChild(node("text", { x: 604, y: 330, class: "label" }, "订货量"));
   }
 
   function renderFva(hasActuals) {
@@ -1029,7 +1122,7 @@
     document.getElementById("c6-fva").textContent = hasActuals ? "+0.091" : "待评价";
     const x0 = 80, y0 = 40, w = 600, h = 250;
     drawGrid(svg, x0, y0, w, h);
-    const labels = ["统计预测误差", "人工调整后误差", "FVA 改善"];
+    const labels = ["统计预测误差", "人工调整后误差", "预测调整改善"];
     const vals = [before, after, fva || 0];
     const colors = ["#f59e0b", "#16a34a", hasActuals ? "#2563eb" : "#94a3b8"];
     labels.forEach((label, i) => {
@@ -1038,9 +1131,68 @@
       const bh = hasActuals ? Math.max(4, vals[i] / .11 * h) : 8;
       svg.appendChild(node("rect", { x, y: y0 + h - bh, width: bw, height: bh, rx: 10, fill: colors[i] }));
       svg.appendChild(node("text", { x: x + bw / 2, y: y0 + h + 24, class: "label", "text-anchor": "middle" }, label));
-      svg.appendChild(node("text", { x: x + bw / 2, y: y0 + h - bh - 10, class: "dark-label", "text-anchor": "middle" }, hasActuals ? vals[i].toFixed(4) : "PENDING"));
+      svg.appendChild(node("text", { x: x + bw / 2, y: y0 + h - bh - 10, class: "dark-label", "text-anchor": "middle" }, hasActuals ? vals[i].toFixed(4) : "待评价"));
     });
-    svg.appendChild(node("text", { x: 74, y: 330, class: "label" }, hasActuals ? "正 FVA：人工调整降低了误差。" : "尚无实际需求时只保留版本链和待评价状态，不提前声称改善。"));
+    svg.appendChild(node("text", { x: 74, y: 330, class: "label" }, hasActuals ? "正向预测调整价值：人工调整降低了误差。" : "尚无实际需求时只保留版本链和待评价状态，不提前声称改善。"));
+  }
+
+  function renderEcn(after = true) {
+    const svg = makeSvg(document.getElementById("chart-c7"));
+    const x0 = 70, y0 = 36, w = 620, h = 252;
+    const labels = ["旧料库存", "旧料在途", "切换前需求", "风险库存"];
+    const before = [7600, 2200, 4600, 5200];
+    const afterData = after ? [7600, 2200, 9000, 800] : before;
+    const max = 9800;
+    document.getElementById("c7-risk").textContent = after ? "800" : "5,200";
+    document.getElementById("c7-status").textContent = after ? "已批准" : "评审中";
+    drawGrid(svg, x0, y0, w, h);
+    labels.forEach((label, i) => {
+      const x = x0 + i * 150 + 24;
+      const bw = 72;
+      const b1 = before[i] / max * h;
+      const b2 = afterData[i] / max * h;
+      svg.appendChild(node("rect", { x, y: y0 + h - b1, width: bw, height: b1, rx: 8, fill: "#f59e0b", opacity: ".55" }));
+      svg.appendChild(node("rect", { x: x + 80, y: y0 + h - b2, width: bw, height: b2, rx: 8, fill: after ? "#16a34a" : "#94a3b8" }));
+      svg.appendChild(node("text", { x: x + 36, y: y0 + h - b1 - 8, class: "dark-label", "text-anchor": "middle" }, fmt(before[i])));
+      svg.appendChild(node("text", { x: x + 116, y: y0 + h - b2 - 8, class: "dark-label", "text-anchor": "middle" }, fmt(afterData[i])));
+      svg.appendChild(node("text", { x: x + 76, y: y0 + h + 25, class: "label", "text-anchor": "middle" }, label));
+    });
+    svg.appendChild(node("circle", { cx: 472, cy: 24, r: 6, fill: "#f59e0b", opacity: ".75" }));
+    svg.appendChild(node("text", { x: 484, y: 28, class: "label" }, "切换前"));
+    svg.appendChild(node("circle", { cx: 552, cy: 24, r: 6, fill: after ? "#16a34a" : "#94a3b8" }));
+    svg.appendChild(node("text", { x: 564, y: 28, class: "label" }, "策略后"));
+    svg.appendChild(node("text", { x: 70, y: 330, class: "label" }, after ? "旧料优先用于切换日前需求；切换后仅保留已批准消耗窗口。" : "未审批前只提示旧料风险，不建议混用或自动切换。"));
+  }
+
+  function renderSupplier(otd) {
+    document.getElementById("c8-otd").textContent = `${otd}%`;
+    document.getElementById("c8-otd-label").textContent = `${otd}%`;
+    const quantityFill = 82;
+    const commitment = 55;
+    const stability = Math.max(0, 100 - 7.7 * 8);
+    const score = Math.round(otd * 0.45 + quantityFill * 0.25 + commitment * 0.2 + stability * 0.1);
+    const grade = score >= 85 ? "A" : score >= 70 ? "B" : score >= 55 ? "C" : "D";
+    document.getElementById("c8-grade").textContent = grade;
+    document.getElementById("c8-action").textContent = grade === "D" ? "升级" : grade === "C" ? "跟催" : "监控";
+    const svg = makeSvg(document.getElementById("chart-c8"));
+    const x0 = 90, y0 = 38, w = 590, h = 250;
+    const metrics = [
+      { label: "准时率", value: otd, good: 95 },
+      { label: "数量满足", value: quantityFill, good: 96 },
+      { label: "承诺遵从", value: commitment, good: 92 },
+      { label: "交期稳定", value: Math.round(stability), good: 90 },
+      { label: "综合得分", value: score, good: 85 }
+    ];
+    drawGrid(svg, x0, y0, w, h);
+    metrics.forEach((d, i) => {
+      const y = y0 + i * 49 + 10;
+      svg.appendChild(node("text", { x: 18, y: y + 20, class: "dark-label" }, d.label));
+      svg.appendChild(node("rect", { x: x0, y, width: w, height: 22, rx: 11, fill: "#e2e8f0" }));
+      svg.appendChild(node("rect", { x: x0, y, width: w * d.value / 100, height: 22, rx: 11, fill: d.value >= d.good ? "#16a34a" : d.value >= 60 ? "#d97706" : "#dc2626" }));
+      svg.appendChild(node("text", { x: x0 + w * d.value / 100 + 10, y: y + 16, class: "dark-label" }, `${d.value}%`));
+      svg.appendChild(node("line", { x1: x0 + w * d.good / 100, y1: y - 4, x2: x0 + w * d.good / 100, y2: y + 26, stroke: "#132033", "stroke-dasharray": "3 4", "stroke-width": "1" }));
+    });
+    svg.appendChild(node("text", { x: 90, y: 330, class: "label" }, grade === "D" ? "等级 D：建议采购升级、要求供应商重承诺，并同步计划评估替代/调拨。" : "等级改善后仍需观察连续履约，再下调安全库存或取消加急策略。"));
   }
 
   document.querySelectorAll(".case-tab").forEach((tab) => {
@@ -1069,6 +1221,9 @@
   document.getElementById("range-c5").addEventListener("input", (e) => renderLot(Number(e.target.value)));
   document.getElementById("btn-c6-actuals").addEventListener("click", () => renderFva(true));
   document.getElementById("btn-c6-pending").addEventListener("click", () => renderFva(false));
+  document.getElementById("btn-c7-apply").addEventListener("click", () => renderEcn(true));
+  document.getElementById("btn-c7-reset").addEventListener("click", () => renderEcn(false));
+  document.getElementById("range-c8").addEventListener("input", (e) => renderSupplier(Number(e.target.value)));
 
   function renderAll() {
     renderProjection(c1Original);
@@ -1077,6 +1232,8 @@
     renderTransfer();
     renderLot(Number(document.getElementById("range-c5").value));
     renderFva(true);
+    renderEcn(true);
+    renderSupplier(Number(document.getElementById("range-c8").value));
   }
   window.addEventListener("resize", renderAll);
   renderAll();

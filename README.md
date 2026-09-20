@@ -15,7 +15,7 @@
 
 想先看项目能解决什么业务问题，可以从这里开始：
 
-- [在线打开 SupplyPilot 交互式案例展示](https://lxingwei81-ux.github.io/supplypilot-agent/)：6个可点击案例，覆盖中间周缺料、需求下降消冗、共用料ATP、多工厂调拨、采购批量优化和预测调整FVA。
+- [在线打开 SupplyPilot 交互式案例展示](https://lxingwei81-ux.github.io/supplypilot-agent/)：8个可点击案例，覆盖中间周缺料、需求下降消冗、共用料ATP、多工厂调拨、采购批量优化、预测调整FVA、ECN旧料消耗和供应商交付风险。
 - 每个案例都把**业务场景、计算公式、规则约束、方法步骤、动作前后校验**放在同一页，方便招聘方或评审快速理解项目价值。
 - GitHub里直接点`.html`文件会显示源码，这是GitHub文件浏览器的默认行为；请使用上面的在线演示链接。
 - 本地单机打开：下载仓库后，Windows用户双击`docs/showcase/open-showcase.bat`，或直接用浏览器打开`docs/showcase/supplypilot-showcase.html`。
@@ -109,49 +109,49 @@ flowchart LR
 
 ### 周度库存投影
 
-$$
-EndingInventory_t = BeginningInventory_t + POReceipt_t + ProductionReceipt_t
-+ TransferIn_t - GrossDemand_t - ReservedDemand_t - TransferOut_t
-$$
+```text
+第t周期末库存 = 第t周期初库存 + 第t周PO到货 + 第t周生产入库
+              + 第t周调入 - 第t周毛需求 - 第t周保留需求 - 第t周调出
+```
 
 逐周递推而不是只计算“库存＋PO－总需求”，因此能够识别总量充足但中间周缺料的时序风险。
 
 ### 冗余库存
 
-$$
-Excess_t = \max(0, EndingInventory_t - SafetyStock_t)
-$$
+```text
+第t周冗余数量 = 若“第t周期末库存 - 第t周安全库存”大于0，则取该差值；否则为0
+```
 
 业务上将其解释为：满足预测/保留需求并保留必要安全缓冲后，仍超出需求的库存。冗余金额为：
 
-$$
-ExcessValue_t = Excess_t \times UnitCost
-$$
+```text
+第t周冗余金额 = 第t周冗余数量 × 单位成本
+```
 
 ### 安全库存
 
-$$
-SS = z \times \sqrt{\overline{LT}\sigma_D^2 + \overline{D}^{2}\sigma_{LT}^2}
-$$
+```text
+安全库存 = 服务水平系数 × √(平均交期 × 需求方差 + 平均需求² × 交期方差)
+```
 
 安全库存吸收需求与交期的不确定性，不用于掩盖虚高预测或不稳定的执行流程。
 
 ### 多级BOM毛需求
 
-$$
-GrossRequirement_{m,t} = \sum_i Forecast_{i,t}\times CumulativeUsage_{i,m}
-$$
+```text
+某物料第t周毛需求 = Σ(成品第t周预测需求 × 该成品到该物料的累计单位用量)
+```
 
 其中累计用量逐层叠加单位用量、单位换算和损耗。
 
 ### 预测情景上下限
 
-$$
-Lower_t=\max(0,Forecast_t\times(1-Band)),\qquad
-Upper_t=Forecast_t\times(1+Band)
-$$
+```text
+悲观下限 = 若“基准预测 × (1 - 波动带宽)”小于0，则取0；否则取该结果
+乐观上限 = 基准预测 × (1 + 波动带宽)
+```
 
-`Band`由历史波动率和`rules.yaml`中的倍率、下限规则确定。它用于比较基准、乐观和悲观情景，**不是经过概率校准的统计置信区间**，不能解释为“真实需求有95%概率落在区间内”。
+`波动带宽`由历史波动率和`rules.yaml`中的倍率、下限规则确定。它用于比较基准、乐观和悲观情景，**不是经过概率校准的统计置信区间**，不能解释为“真实需求有95%概率落在区间内”。
 
 ## 三个重点案例
 
