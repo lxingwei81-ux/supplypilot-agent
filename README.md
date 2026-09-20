@@ -15,9 +15,11 @@
 
 想先看项目能解决什么业务问题，可以从这里开始：
 
-- [SupplyPilot 交互式案例展示](docs/showcase/supplypilot-showcase.html)：6个可点击案例，覆盖中间周缺料、需求下降消冗、共用料ATP、多工厂调拨、采购批量优化和预测调整FVA。
+- [在线打开 SupplyPilot 交互式案例展示](https://lxingwei81-ux.github.io/supplypilot-agent/)：6个可点击案例，覆盖中间周缺料、需求下降消冗、共用料ATP、多工厂调拨、采购批量优化和预测调整FVA。
 - 每个案例都把**业务场景、计算公式、规则约束、方法步骤、动作前后校验**放在同一页，方便招聘方或评审快速理解项目价值。
-- 本地预览：`python -m http.server 8080 --bind 127.0.0.1 --directory docs/showcase`，然后打开 `http://127.0.0.1:8080/supplypilot-showcase.html`。
+- GitHub里直接点`.html`文件会显示源码，这是GitHub文件浏览器的默认行为；请使用上面的在线演示链接。
+- 本地单机打开：下载仓库后，Windows用户双击`docs/showcase/open-showcase.bat`，或直接用浏览器打开`docs/showcase/supplypilot-showcase.html`。
+- 本地服务预览：`python -m http.server 8080 --bind 127.0.0.1 --directory docs/showcase`，然后打开 `http://127.0.0.1:8080/supplypilot-showcase.html`。
 
 ![SupplyPilot Supply Chain Control Tower](assets/screenshots/control-tower-overview.png)
 

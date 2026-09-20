@@ -3,9 +3,26 @@
 本目录用于 GitHub 展示和项目面试讲解。
 
 - `supplypilot-showcase.html` 是自包含交互式案例页，不依赖 CDN 或后端服务。
-- `index.html` 会跳转到案例页，便于 GitHub Pages 使用 `/showcase/` 入口。
+- `index.html` 会跳转到案例页，便于 GitHub Pages 使用站点根入口。
+- `open-showcase.bat` 用于 Windows 本地单机双击打开网页。
+
+在线演示：
+
+```text
+https://lxingwei81-ux.github.io/supplypilot-agent/
+```
+
+注意：在 GitHub 仓库文件列表中直接点击 `.html` 文件会看到源码，这是 GitHub 文件浏览器的默认行为；需要使用上面的 GitHub Pages 链接，或下载仓库后在本机打开。
 
 本地预览：
+
+Windows 用户也可以直接双击：
+
+```text
+docs/showcase/open-showcase.bat
+```
+
+或者启动本地静态服务：
 
 ```bash
 python -m http.server 8080 --bind 127.0.0.1 --directory docs/showcase
