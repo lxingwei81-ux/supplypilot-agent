@@ -1,17 +1,46 @@
-# SupplyPilot：供应链计划与采购协同智能体
+# SupplyPilot：Supply Chain Control Tower + AI Copilot
 
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-API-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-24_pages-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
-[![Tests](https://img.shields.io/badge/tests-124_passed-brightgreen)](tests/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-5_workspaces-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![Tests](https://img.shields.io/badge/tests-140_passed-brightgreen)](tests/)
 [![Data](https://img.shields.io/badge/data-synthetic_demo-blue)](data/)
 [![License](https://img.shields.io/badge/license-MIT-black)](LICENSE)
 
-面向制造业供应链计划场景，将**需求预测、多级BOM、周度库存投影、缺料与冗余诊断、ATP分配、多工厂调拨、采购优化和审批跟踪**封装为可追溯的智能体工具链。
+面向制造业计划、库存与采购协同场景，将**需求预测、多级BOM、周度库存投影、缺料与冗余诊断、ATP分配、多工厂调拨、采购优化和审批跟踪**汇集到一个可下钻的供应链控制塔，并由AI Copilot按“结论—证据—根因—动作—影响”组织决策说明。
 
-> 设计边界：LLM负责理解问题、场景路由辅助、原因解释和报告组织；所有预测、库存、BOM、数量、金额与优化结果均由确定性Python服务计算。
+> 设计边界：LLM只负责语言理解与表达辅助；所有预测、库存、BOM、数量、金额、风险分级和动作前后结果均由确定性Python服务计算。PO取消、跨厂调拨、替代料和ECN等高影响动作只生成建议与审批信息，不自动写回ERP。
 
-![SupplyPilot管理驾驶舱](assets/screenshots/management-dashboard.png)
+![SupplyPilot Supply Chain Control Tower](assets/screenshots/control-tower-overview.png)
+
+## 五大工作区
+
+| 工作区 | 回答的问题 | 核心界面 |
+|---|---|---|
+| **Overview** | 现在最需要处理什么 | KPI、需求趋势、库存风险热力图、风险队列、AI洞察、行动中心 |
+| **Demand Forecast** | 未来需求是多少、模型是否可信 | Actual vs Forecast、情景上下限、滚动回测、版本与人工调整 |
+| **Inventory** | 哪一周缺料、哪里形成冗余 | BOM拆解、周度库存投影、安全库存、缺料/冗余与情景模拟 |
+| **Procurement** | 哪个PO、工厂或供应商需要协同 | PO动作、ATP、跨厂调拨、采购优化、供应商可靠性与审批任务 |
+| **AI Copilot** | 为什么发生、建议做什么 | 结构化摘要、证据、根因、建议动作、预期影响、规则与限制 |
+
+旧版页面和`?page=`直达方式继续保留，只是重新归入五个主工作区，避免破坏原有Demo和调用路径。
+
+## Hero Demo：MAT-B需求上升与供应延期
+
+控制塔默认故事使用仓库内可复现的`PRODUCT_B / MAT-B`合成数据。周度投影识别出最大缺口`8,800`件；模拟从来源工厂调拨`1,800`件并同时重算两地库存后，最大缺口降至`7,000`件，首次缺料由`2026-08-24`推迟至`2026-09-21`，来源工厂最大缺口仍为`0`且期末库存不低于安全库存。
+
+| 指标 | 动作前 | 调拨1,800件后 |
+|---|---:|---:|
+| 首次缺料周 | 2026-08-24 | 2026-09-21 |
+| 最大缺口 | 8,800 | 7,000 |
+| 来源工厂新增缺料 | — | 0 |
+| 是否自动执行 | 否 | 否，需计划/物流审批 |
+
+同一行动中心还展示MAT-A消冗案例：取消`8,000`件未锁定PO后，期末冗余由`9,000`降至`1,000`件，重新投影未制造缺料。以上都是Demo计算结果，不代表生产收益。
+
+> 展示口径：需求预测图使用`DEMO-HISTORY-V1`，物料库存异常与动作中心使用独立的`DEMO-INV-V1`情景包。两者在控制塔中组合展示，但当前Hero不声称已按周完成Forecast→BOM→Inventory数据贯通；完整BOM拆解和库存投影能力可在对应工作区分别验证。
+
+[查看控制塔完整案例](docs/cases/12-control-tower-hero.md) · [查看公式与规则](docs/FORMULA_CATALOG.md)
 
 ## 30秒看懂项目
 
@@ -53,7 +82,7 @@ flowchart LR
 |---|---|---|
 | 历史数据是否可信 | 必填、日期、数值、重复记录、BOM循环、版本断档检查 | 阻断项、警告、数据限制 |
 | 应该使用哪类预测方法 | ABC/XYZ、ADI-CV²、生命周期分类 | 需求标签、候选模型、库存策略 |
-| 未来需求是多少 | 11类模型、4/8/13/26周预测、滚动起点回测 | WAPE、Bias、MAE、模型得分、置信度 |
+| 未来需求是多少 | 11类基础预测模型＋EOL DECAY衰减策略、4/8/13/26周预测、滚动起点回测 | WAPE、Bias、MAE、模型得分、置信度 |
 | 人工调整是否有效 | 统计/调整/共识版本和FVA | 审批记录、调整证据、FVA状态 |
 | 成品需求如何转换为物料需求 | 任意层级BOM递归、版本有效期、损耗和单位换算 | 物料、周次、BOM路径、毛需求 |
 | 哪一周会缺料 | 可用库存与逐周库存状态递推 | 首次缺料周、最大缺口、覆盖周数 |
@@ -105,6 +134,15 @@ $$
 
 其中累计用量逐层叠加单位用量、单位换算和损耗。
 
+### 预测情景上下限
+
+$$
+Lower_t=\max(0,Forecast_t\times(1-Band)),\qquad
+Upper_t=Forecast_t\times(1+Band)
+$$
+
+`Band`由历史波动率和`rules.yaml`中的倍率、下限规则确定。它用于比较基准、乐观和悲观情景，**不是经过概率校准的统计置信区间**，不能解释为“真实需求有95%概率落在区间内”。
+
 ## 三个重点案例
 
 ### 1. 总量不缺，但中间周缺料
@@ -138,7 +176,7 @@ python examples/run_cases.py --case 3
 | 新增缺料 | — | 否 |
 | 建议执行 | — | 是，需审批 |
 
-![采购成本与批量优化](assets/screenshots/procurement-optimization.png)
+![采购行动与审批](assets/screenshots/procurement-action-center.png)
 
 系统继续检查共用消耗、跨厂调拨和ECN消耗机会；PO取消、调拨和ECN均只生成建议，不自动写回业务系统。
 
@@ -168,11 +206,15 @@ python examples/run_phase2_cases.py --case 2
 
 ## 页面预览
 
-| 需求预测 | 多情景库存优化 |
+| 库存风险热力图 | AI Copilot结构化决策 |
 |---|---|
-| ![需求预测](assets/screenshots/forecast.png) | ![多情景库存优化](assets/screenshots/scenario-optimization.png) |
+| ![库存风险热力图](assets/screenshots/inventory-risk-heatmap.png) | ![AI Copilot结构化决策](assets/screenshots/ai-copilot-structured-response.png) |
 
-Streamlit共24个页面，覆盖数据质量、需求分类、预测/回测、预测版本、BOM、库存投影、风险、采购动作、ATP、调拨、ECN、任务和管理驾驶舱。
+| Actual vs Forecast | 动作前后校验 |
+|---|---|
+| ![需求预测与情景带](assets/screenshots/demand-forecast-confidence.png) | ![动作前后校验](assets/screenshots/action-impact-validation.png) |
+
+Streamlit以五个主工作区组织原有能力，覆盖数据质量、需求分类、预测/回测、预测版本、BOM、库存投影、风险、采购动作、ATP、调拨、ECN、任务和控制塔。控制塔的KPI、热力图、洞察卡片和Copilot共用同一份`ControlTowerSnapshot`，避免同屏指标口径不一致。
 
 ## 智能体业务编排架构
 
@@ -226,9 +268,9 @@ python -m pip install -r requirements.txt
 python -m streamlit run app.py
 ```
 
-浏览器打开 `http://localhost:8501`。除“智能问答”外，确定性页面不需要OpenAI API Key。
+浏览器打开 `http://localhost:8501`。五大工作区以及结构化AI Copilot的Demo均可在无OpenAI API Key时运行；Copilot的数字与动作影响来自确定性控制塔快照，不调用大模型进行数量计算。
 
-如需启用Agent问答：
+如需单独启用兼容的OpenAI Agents SDK自然语言编排能力：
 
 ```powershell
 Copy-Item .env.example .env
@@ -242,6 +284,13 @@ python -m uvicorn src.api:app --reload
 ```
 
 接口文档：`http://127.0.0.1:8000/docs`
+
+控制塔与结构化Copilot接口：
+
+```text
+GET  /v3/control-tower?selected_product_id=PRODUCT_B
+POST /v3/copilot/structured
+```
 
 ### 运行案例
 
@@ -272,10 +321,11 @@ python -m src.evaluate
 
 当前验收结果：
 
-- `124 passed`；
+- `140 passed`；
 - 原有20条冗余记录的公式/动作一致性回归为100%；
 - 第一阶段5个案例与第二阶段11个案例均可独立运行；
-- 24个Streamlit页面通过加载检查；
+- 原有业务页面已归入五大工作区，旧`?page=`链接和智能问答别名继续兼容；
+- 控制塔KPI、情景带、风险热力、动作前后校验、结构化Copilot与导航兼容均有确定性测试；
 - 新旧工具及`/query`兼容接口保留。
 
 这里的100%是规则一致性回归结果，不是生产预测准确率或库存收益。
@@ -284,7 +334,7 @@ python -m src.evaluate
 
 ```text
 supplypilot_agent_v2/
-├─ app.py                         # 24个Streamlit页面
+├─ app.py                         # 五大工作区入口与原页面兼容路由
 ├─ config/rules.yaml              # 阈值、成本、权重、服务水平、审批矩阵
 ├─ data/                          # 脱敏合成Demo CSV
 ├─ assets/screenshots/            # GitHub展示截图
@@ -302,8 +352,9 @@ supplypilot_agent_v2/
 │  ├─ models.py                   # Pydantic领域模型
 │  ├─ router.py                   # 场景路由
 │  ├─ tools.py                    # 兼容工具与V2/V3工具
-│  └─ services/                   # 确定性领域服务
-├─ tests/                         # 124项领域测试
+│  ├─ services/                   # 确定性领域服务与控制塔聚合
+│  └─ ui/                         # 主题、导航、图表、组件和工作区
+├─ tests/                         # 140项领域、控制塔、API和导航测试
 └─ requirements.txt
 ```
 
@@ -322,7 +373,8 @@ supplypilot_agent_v2/
 - 系统不连接真实ERP，不自动写回生产数据；
 - 不自动执行PO取消、调拨、替代料、ECN或报废；
 - 任务模块只生成结构化提醒，不发送真实邮件或企业消息；
-- 原V2采购数据仍保留18组重复单号，用于演示数据质量阻断；
+- 原V2采购数据仍保留18组重复单号，用于演示数据质量阻断；控制塔计算使用隔离的`DEMO-*`数据版本，不会绕过或静默修复旧数据问题；
+- Forecast上下限是基于波动率规则构造的情景带，不是概率校准的统计置信区间；
 - 工作流和任务默认使用进程内存储，生产部署需接入数据库、权限、审计和并发控制；
 - Demo成本、服务水平和阈值来自`config/rules.yaml`，真实使用前必须根据企业策略校准。
 

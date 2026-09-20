@@ -221,6 +221,14 @@ class ReportingConfig(StrictConfig):
     trace_source_label: str
 
 
+class ControlTowerConfig(StrictConfig):
+    inventory_watch_buffer_multiplier: float = Field(ge=1)
+    portfolio_wape_risk_threshold: float = Field(ge=0)
+    item_wape_healthy_threshold: float = Field(ge=0)
+    item_bias_watch_threshold: float = Field(ge=0)
+    supplier_otd_risk_threshold: float = Field(ge=0, le=1)
+
+
 class AllocationConfig(StrictConfig):
     frozen_order_bonus: float = Field(ge=0)
     customer_priority_weight: float = Field(ge=0)
@@ -337,6 +345,7 @@ class RulesConfig(StrictConfig):
     approvals: ApprovalConfig
     data_quality: DataQualityConfig
     reporting: ReportingConfig
+    control_tower: ControlTowerConfig
     allocation: AllocationConfig
     transfer_optimization: TransferOptimizationConfig
     po_optimization: POOptimizationConfig

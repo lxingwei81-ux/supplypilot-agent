@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 .pytest_cache/
+.pytest-tmp-*/
 .mypy_cache/
 .ruff_cache/
 coverage.xml
@@ -40,4 +41,3 @@ snapshots.local.json
 # Excel temporary files
 ~$*.xlsx
 ~$*.xlsm
-

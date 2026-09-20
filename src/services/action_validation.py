@@ -131,7 +131,9 @@ def validate_action_impact(
         raise ValueError("action object does not match baseline material and plant")
     baseline = project_inventory_by_week(baseline_input)
     scenario_input = baseline_input.model_copy(deep=True)
-    related_copies = [item.model_copy(deep=True) for item in related_inputs]
+    related_originals = list(related_inputs)
+    related_baselines = [project_inventory_by_week(item) for item in related_originals]
+    related_copies = [item.model_copy(deep=True) for item in related_originals]
     warnings = _apply_action(action, scenario_input, related_copies)
     scenario = project_inventory_by_week(scenario_input)
     related_results = [project_inventory_by_week(item) for item in related_copies]
@@ -166,6 +168,15 @@ def validate_action_impact(
             due_date=action.due_date,
         )})
     residual_risks = warnings[:]
+    for before_related, after_related in zip(related_baselines, related_results):
+        if (
+            before_related.first_below_safety_stock_week is None
+            and after_related.first_below_safety_stock_week is not None
+        ):
+            residual_risks.append(
+                f"关联实体 {after_related.material_id}@{after_related.plant} 新增低于安全库存风险，"
+                f"首次发生于 {after_related.first_below_safety_stock_week}"
+            )
     if scenario.maximum_shortage_qty > 0:
         residual_risks.append(f"动作后最大缺口仍为 {scenario.maximum_shortage_qty:.2f}")
     if scenario.ending_excess_qty > 0:

@@ -35,10 +35,10 @@ python examples/run_cases.py --case all
 python examples/run_phase2_cases.py --case all
 ```
 
-- [ ] 124项测试全部通过；
+- [ ] 140项测试全部通过；
 - [ ] 第一阶段5个案例通过；
 - [ ] 第二阶段11个案例通过；
-- [ ] 24个Streamlit页面可以加载；
+- [ ] 五大主工作区及全部兼容业务页面可以加载；
 - [ ] FastAPI `/health`和关键`/v3`接口返回200；
 - [ ] GitHub Actions测试通过。
 
@@ -46,7 +46,7 @@ python examples/run_phase2_cases.py --case all
 
 - [ ] 确认MIT License符合发布意图；
 - [ ] 仓库名、简介、Topics和README标题一致；
-- [ ] 替换README中的`<your-repository-url>`；
+- [ ] 确认README克隆地址指向正式仓库；
 - [ ] 设置GitHub Topics：`supply-chain`、`demand-forecasting`、`inventory-optimization`、`agent`、`fastapi`、`streamlit`；
 - [ ] 首个Release写明Demo边界和已知限制。
 

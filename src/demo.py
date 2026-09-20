@@ -132,3 +132,9 @@ def demo_supplier_records() -> list[SupplierDeliveryRecord]:
             data_version=str(row["data_version"]),
         ))
     return rows
+
+
+def demo_supplier_assignments() -> list[dict[str, Any]]:
+    """Return the versioned demo material-to-supplier master mapping."""
+
+    return load_table("demo_supplier_assignments")

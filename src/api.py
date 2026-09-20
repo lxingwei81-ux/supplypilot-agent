@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
@@ -8,11 +8,17 @@ from .agent import ask
 from .models import (
     Action, ATPDemand, DemandScenario, ECNValidationStatus, ECNWorkflow,
     InventoryDecision, InventoryProjectionInput, POOption, PriceBreak,
-    SupplierDeliveryRecord, TransferLane, TransferSource, TransferTarget,
+    ControlTowerSnapshot, StructuredCopilotResponse, SupplierDeliveryRecord,
+    TransferLane, TransferSource, TransferTarget,
 )
 from .router import route_scenario
 from .services.action_validation import validate_action_impact
 from .services.allocation import allocate_shared_material_atp
+from .services.control_tower import (
+    answer_control_tower_question,
+    build_demo_control_tower_snapshot,
+    resolve_question_product_id,
+)
 from .services.data_quality import assess_project_data
 from .services.demand_classification import classify_demand
 from .services.forecasting import generate_forecast
@@ -109,9 +115,32 @@ class ScenarioOptimizationRequest(BaseModel):
     decisions: list[InventoryDecision]
 
 
+class StructuredCopilotRequest(BaseModel):
+    question: str
+    selected_product_id: Literal["PRODUCT_A", "PRODUCT_B"] = "PRODUCT_B"
+
+
 @app.get("/v3/data-quality")
 def data_quality() -> dict[str, Any]:
     return assess_project_data().model_dump(mode="json")
+
+
+@app.get("/v3/control-tower", response_model=ControlTowerSnapshot)
+def control_tower(
+    selected_product_id: Literal["PRODUCT_A", "PRODUCT_B"] = "PRODUCT_B",
+) -> dict[str, Any]:
+    """Return one read-only, source-traceable overview payload."""
+
+    return build_demo_control_tower_snapshot(selected_product_id).model_dump(mode="json")
+
+
+@app.post("/v3/copilot/structured", response_model=StructuredCopilotResponse)
+def structured_copilot(req: StructuredCopilotRequest) -> dict[str, Any]:
+    """Render deterministic evidence into the Copilot response schema."""
+
+    selected_product_id = resolve_question_product_id(req.question, req.selected_product_id)
+    snapshot = build_demo_control_tower_snapshot(selected_product_id)
+    return answer_control_tower_question(snapshot, req.question).model_dump(mode="json")
 
 
 @app.post("/v3/route")

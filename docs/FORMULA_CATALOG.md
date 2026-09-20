@@ -113,6 +113,29 @@ $$
 
 实现位置：[`forecast_versioning.py`](../src/services/forecast_versioning.py)
 
+### 2.6 Forecast情景带（非统计置信区间）
+
+实现位置：[`forecasting.py`](../src/services/forecasting.py)
+控制塔测试：[`test_control_tower.py`](../tests/test_control_tower.py)
+
+系统先根据历史需求波动率与配置倍率形成情景带宽：
+
+$$
+Band=\min\left(1,\max\left(Band_{min},Volatility\times Multiplier\right)\right)
+$$
+
+再围绕基准预测形成上下限：
+
+$$
+Lower_t=\max(0,Forecast_t\times(1-Band))
+$$
+
+$$
+Upper_t=Forecast_t\times(1+Band)
+$$
+
+这组上下限用于乐观/悲观情景展示和人工复核，不是从预测误差分布估计出的统计置信区间，也不代表80%、90%或95%的概率覆盖。`ForecastConfidence`同样是根据数据长度、波动、间歇性和回测表现形成的规则等级，不应解释为概率。
+
 ## 3. 多级BOM需求拆解
 
 实现位置：[`bom.py`](../src/services/bom.py)  
@@ -210,6 +233,24 @@ CoverageWeeks_t=\frac{\max(0,EndingInventory_t)}{MeanPositiveFutureDemand_t}
 $$
 
 若未来没有正需求，覆盖周数返回空值，避免把“无限覆盖”作为正常库存指标。
+
+### 4.6 控制塔库存风险热力分级
+
+实现位置：[`control_tower.py`](../src/services/control_tower.py)
+
+每个“物料×周”单元格使用确定性优先级规则：
+
+| 优先级 | 条件 | 状态 |
+|---:|---|---|
+| 1 | $EndingInventory_t<0$ | Critical，已发生动态缺料 |
+| 2 | $0\le EndingInventory_t<SafetyStock_t$ | Risk，低于安全库存 |
+| 3 | $SafetyStock_t\le EndingInventory_t<buffer\_multiplier\times SafetyStock_t$ | Watch，缓冲偏低 |
+| 4 | 预测连续下调且$ExcessValue_t\ge critical\_value$ | Critical，严重冗余敞口 |
+| 5 | 预测连续下调且$ExcessValue_t\ge high\_value$ | Risk，高冗余敞口 |
+| 6 | 预测连续下调且$ExcessValue_t\ge medium\_value$ | Watch，中等冗余敞口 |
+| 7 | 以上均未触发 | Healthy |
+
+`buffer_multiplier`来自`control_tower.inventory_watch_buffer_multiplier`（Demo为1.5）；三档金额阈值分别来自`risk.excess.critical_value/high_value/medium_value`。规则按表中顺序命中，热力图颜色只是状态的视觉映射，不是缺料概率。鼠标详情同时显示期末库存、安全库存、需求、到货、缺口、冗余和数据版本。
 
 ## 5. 安全库存与补货
 
@@ -418,6 +459,23 @@ flowchart LR
 ```
 
 高影响动作包括PO取消、跨厂调拨、替代料、ECN切换和报废。系统不直接执行这些动作。
+
+动作卡片使用同一组前后结果计算改善量：
+
+$$
+ShortageReduction=MaximumShortage_{before}-MaximumShortage_{after}
+$$
+
+$$
+ExcessReduction=EndingExcess_{before}-EndingExcess_{after}
+$$
+
+只有动作后没有制造新缺料、且相关工厂/产品校验通过时，系统才可返回“建议执行”；这仍不等于已经审批或已经写回ERP。
+
+控制塔已核验Demo：
+
+- MAT-B跨厂调拨1,800件：最大缺口$8{,}800\rightarrow7{,}000$，首次缺料由`2026-08-24`推迟至`2026-09-21`，来源工厂最大缺口为0且期末库存不低于安全库存；
+- MAT-A取消8,000件未锁定PO：期末冗余$9{,}000\rightarrow1{,}000$，动作后最大缺口为0。
 
 ## 13. 追溯字段
 

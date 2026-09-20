@@ -134,11 +134,19 @@ data_quality:
     bom: [parent_id, child_id, unit_usage]
     inventory: [material_id, plant, on_hand]
     procurement: [document_id, material_id, plant, open_qty]
+    supplier_assignments: [material_id, supplier_id, valid_from, valid_to]
 
 reporting:
   currency: CNY
   timezone: Asia/Shanghai
   trace_source_label: DEMO
+
+control_tower:
+  inventory_watch_buffer_multiplier: 1.50
+  portfolio_wape_risk_threshold: 0.30
+  item_wape_healthy_threshold: 0.20
+  item_bias_watch_threshold: 0.10
+  supplier_otd_risk_threshold: 0.90
 
 allocation:
   frozen_order_bonus: 1000.0

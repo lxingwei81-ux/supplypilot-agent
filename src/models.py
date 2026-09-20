@@ -951,3 +951,121 @@ class ManagementDashboard(DomainModel):
     supplier_grade_distribution: dict[str, int]
     top_risks: list[dict[str, Any]]
     source_versions: dict[str, str]
+
+
+class ControlTowerStatus(str, Enum):
+    """Shared presentation status with one semantic color system."""
+
+    HEALTHY = "HEALTHY"
+    WATCH = "WATCH"
+    RISK = "RISK"
+    CRITICAL = "CRITICAL"
+    UNKNOWN = "UNKNOWN"
+
+
+class ControlTowerKPI(DomainModel):
+    key: str
+    label: str
+    value: float
+    display_value: str
+    detail: str
+    status: ControlTowerStatus = ControlTowerStatus.HEALTHY
+    drilldown_page: str | None = None
+
+
+class DemandTrendPoint(DomainModel):
+    item_id: str
+    week_start: date
+    actual_qty: float | None = Field(default=None, ge=0)
+    forecast_qty: float | None = Field(default=None, ge=0)
+    lower_bound: float | None = Field(default=None, ge=0)
+    upper_bound: float | None = Field(default=None, ge=0)
+    period_type: str
+    source_version: str
+
+
+class InventoryRiskCell(DomainModel):
+    material_id: str
+    plant: str
+    week_start: date
+    ending_inventory: float
+    safety_stock: float = Field(ge=0)
+    gross_demand: float = Field(ge=0)
+    incoming_supply: float = Field(ge=0)
+    shortage_qty: float = Field(ge=0)
+    excess_qty: float = Field(ge=0)
+    coverage_weeks: float | None = Field(default=None, ge=0)
+    status: ControlTowerStatus
+    status_reason: str
+    source_version: str
+
+
+class RiskQueueItem(DomainModel):
+    risk_id: str
+    priority: RiskLevel
+    material_id: str
+    plant: str
+    issue: str
+    impact_quantity: float = Field(ge=0)
+    impact_value: float = Field(ge=0)
+    risk_date: date | None = None
+    root_cause: str
+    recommended_action: ActionType
+    owner_department: str
+    latest_action_date: date
+    source_version: str
+
+
+class InsightCard(DomainModel):
+    insight_id: str
+    status: ControlTowerStatus
+    title: str
+    what_happened: str
+    why: str
+    recommendation: str
+    drilldown_page: str
+    object_id: str
+
+
+class CopilotEvidenceItem(DomainModel):
+    label: str
+    value: str
+    source: str
+    source_version: str
+
+
+class StructuredCopilotResponse(DomainModel):
+    question: str
+    summary: str
+    risk_level: RiskLevel
+    evidence: list[CopilotEvidenceItem]
+    root_causes: list[str]
+    recommendations: list[str]
+    expected_impact: list[str]
+    business_rules: list[str]
+    action_validation_id: str | None = None
+    limitations: list[str] = Field(default_factory=list)
+    source_versions: dict[str, str]
+    generated_at: datetime = Field(default_factory=utc_now)
+
+
+class ControlTowerSnapshot(DomainModel):
+    """Read-only aggregate used by Streamlit and the overview API."""
+
+    as_of: datetime = Field(default_factory=utc_now)
+    selected_product_id: str
+    selected_material_id: str
+    kpis: list[ControlTowerKPI]
+    demand_trend: list[DemandTrendPoint]
+    inventory_heatmap: list[InventoryRiskCell]
+    projections: list[InventoryProjectionResult]
+    risks: list[Risk]
+    risk_queue: list[RiskQueueItem]
+    insights: list[InsightCard]
+    action_validations: list[ActionValidation]
+    suppliers: list[SupplierReliabilityResult]
+    structured_response: StructuredCopilotResponse
+    data_quality: DataQualityReport
+    legacy_data_quality: DataQualityReport | None = None
+    limitations: list[str]
+    source_versions: dict[str, str]

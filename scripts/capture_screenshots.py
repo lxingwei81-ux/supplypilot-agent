@@ -14,20 +14,33 @@ import tempfile
 import time
 from typing import Any
 from urllib.error import URLError
-from urllib.parse import quote
+from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 import websocket
 
 
-PAGES = {
-    "management-dashboard.png": "管理驾驶舱",
-    "forecast.png": "需求预测",
-    "inventory-projection.png": "周度库存投影",
-    "atp-allocation.png": "共用料ATP与客户分配",
-    "transfer-optimization.png": "多工厂调拨优化",
-    "procurement-optimization.png": "采购成本与批量优化",
-    "scenario-optimization.png": "多情景库存成本优化",
+CAPTURES: dict[str, dict[str, str]] = {
+    # Product-story screenshots used by README and case documents.
+    "control-tower-overview.png": {"page": "管理驾驶舱"},
+    "demand-forecast-confidence.png": {"page": "需求预测"},
+    "inventory-risk-heatmap.png": {"page": "管理驾驶舱", "_scroll_to": "Inventory Risk Heatmap"},
+    "sku-360-detail.png": {"page": "管理驾驶舱", "detail": "MAT-B"},
+    "inventory-projection.png": {"page": "库存控制台", "material": "MAT-B"},
+    "procurement-action-center.png": {"page": "采购工作台"},
+    "action-impact-validation.png": {
+        "page": "库存控制台",
+        "material": "MAT-A",
+        "_scroll_to": "动作前后验证",
+    },
+    "ai-copilot-structured-response.png": {"page": "AI Copilot"},
+    # Backward-compatible names referenced by older releases.
+    "management-dashboard.png": {"page": "管理驾驶舱"},
+    "forecast.png": {"page": "需求预测"},
+    "atp-allocation.png": {"page": "共用料ATP与客户分配"},
+    "transfer-optimization.png": {"page": "多工厂调拨优化"},
+    "procurement-optimization.png": {"page": "采购成本与批量优化"},
+    "scenario-optimization.png": {"page": "多情景库存成本优化"},
 }
 
 
@@ -121,12 +134,9 @@ def wait_for_streamlit_page(
 ) -> None:
     expression = """
         (() => {
-          const heading = document.querySelector('h1');
           const app = document.querySelector('[data-testid="stAppViewContainer"]');
-          const skeleton = document.querySelector('[data-testid="stSkeleton"]');
           return Boolean(
-            heading && heading.innerText.includes('SupplyPilot') &&
-            app && app.innerText.length > 350 && !skeleton
+            app && app.innerText.includes('SupplyPilot') && app.innerText.length > 250
           );
         })()
     """
@@ -138,7 +148,9 @@ def wait_for_streamlit_page(
             session_id=session_id,
         )
         if result.get("result", {}).get("value") is True:
-            time.sleep(1.2)
+            # Vega views mount asynchronously; wait for both charts in the
+            # two-column control-tower layout before capturing the viewport.
+            time.sleep(3.0)
             return
         time.sleep(0.35)
     raise TimeoutError("Streamlit page did not finish rendering before capture.")
@@ -150,6 +162,7 @@ def capture_page(
     destination: Path,
     width: int,
     height: int,
+    scroll_to: str | None = None,
 ) -> None:
     target_id = devtools.call("Target.createTarget", {"url": "about:blank"})["targetId"]
     session_id = devtools.call(
@@ -171,6 +184,25 @@ def capture_page(
         )
         devtools.call("Page.navigate", {"url": url}, session_id=session_id)
         wait_for_streamlit_page(devtools, session_id)
+        if scroll_to:
+            expression = f"""
+                (() => {{
+                  const target = [...document.querySelectorAll('h1,h2,h3')]
+                    .find((element) => element.textContent.trim() === {json.dumps(scroll_to)});
+                  if (!target) return false;
+                  target.scrollIntoView({{block: 'start'}});
+                  window.scrollBy(0, -24);
+                  return true;
+                }})()
+            """
+            result = devtools.call(
+                "Runtime.evaluate",
+                {"expression": expression, "returnByValue": True},
+                session_id=session_id,
+            )
+            if result.get("result", {}).get("value") is not True:
+                raise RuntimeError(f"Could not find screenshot section: {scroll_to}")
+            time.sleep(1.0)
         screenshot = devtools.call(
             "Page.captureScreenshot",
             {
@@ -206,10 +238,12 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=8501)
     parser.add_argument("--width", type=int, default=1440)
     parser.add_argument("--height", type=int, default=1000)
+    parser.add_argument("--output-dir", type=Path)
+    parser.add_argument("--only", action="append", choices=sorted(CAPTURES))
     args = parser.parse_args()
 
     project_root = Path(__file__).resolve().parents[1]
-    output_directory = project_root / "assets" / "screenshots"
+    output_directory = args.output_dir.resolve() if args.output_dir else project_root / "assets" / "screenshots"
     output_directory.mkdir(parents=True, exist_ok=True)
     streamlit_url = f"http://127.0.0.1:{args.port}"
 
@@ -268,10 +302,24 @@ def main() -> None:
         )
         devtools = DevTools(wait_for_devtools(debug_port))
 
-        for filename, page in PAGES.items():
-            url = f"{streamlit_url}/?page={quote(page)}&capture={Path(filename).stem}"
+        selected_captures = (
+            {filename: CAPTURES[filename] for filename in args.only}
+            if args.only
+            else CAPTURES
+        )
+        for filename, query in selected_captures.items():
+            params = {key: value for key, value in query.items() if not key.startswith("_")}
+            params["capture"] = Path(filename).stem
+            url = f"{streamlit_url}/?{urlencode(params)}"
             destination = output_directory / filename
-            capture_page(devtools, url, destination, args.width, args.height)
+            capture_page(
+                devtools,
+                url,
+                destination,
+                args.width,
+                args.height,
+                scroll_to=query.get("_scroll_to"),
+            )
             relative = destination.relative_to(project_root)
             print(f"Captured {relative} ({destination.stat().st_size:,} bytes)")
     finally:

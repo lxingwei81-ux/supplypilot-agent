@@ -36,6 +36,7 @@
 | demo_po_optimization | document_id, open/cancelable/reschedulable/locked_qty, penalty, deadline, mpq | PO取消/延期成本优化 |
 | demo_price_breaks | material_id, minimum_qty, unit_price, moq, mpq, package_multiple | 采购批量和价格阶梯 |
 | demo_supplier_deliveries | supplier_id, promised/confirmed/actual_date, ordered/received_qty | 供应商交期和齐套可靠性 |
+| demo_supplier_assignments | material_id, supplier_id, valid_from/to, mapping_version | 带有效期的物料—供应商映射及Copilot证据追溯 |
 
 ## 第二阶段运行时对象
 
@@ -55,6 +56,8 @@
 | SupplierReliabilityResult | OTD, fill, adherence, stability, grade | 供应商履约评价 |
 | MultiScenarioOptimizationResult | expected_cost, robust_feasible_decisions, selected_decision | 多情景库存优化 |
 | ManagementDashboard | blocker/risk/task/supplier aggregates | 管理驾驶舱 |
+| ControlTowerSnapshot | KPI、需求趋势、风险热力、投影、动作校验、数据质量、版本 | 五大工作区共用的单一口径快照 |
+| StructuredCopilotResponse | summary、evidence、root_causes、recommendations、impact、rules、limitations | 可验证的Copilot决策说明，不包含自由生成数量 |
 
 ## 版本和追溯
 

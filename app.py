@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import json
 from datetime import date, timedelta
 
@@ -23,7 +22,6 @@ from src.services.action_validation import validate_action_impact
 from src.services.allocation import allocate_shared_material_atp
 from src.services.backtesting import rolling_backtest_trace
 from src.services.bom import explode_bom
-from src.services.dashboard import build_management_dashboard
 from src.services.data_quality import assess_project_data
 from src.services.demand_classification import classify_demand
 from src.services.forecasting import generate_forecast
@@ -40,9 +38,19 @@ from src.services.snapshots import SnapshotStore
 from src.services.supplier_reliability import calculate_supplier_reliability
 from src.services.task_management import RiskTaskService
 from src.services.transfer_optimization import optimize_cross_plant_transfer
+from src.ui.control_tower import render_control_tower
+from src.ui.copilot import render_copilot
+from src.ui.navigation import render_navigation
+from src.ui.theme import inject_theme
+from src.ui.workspaces import (
+    render_demand_workspace,
+    render_inventory_workspace,
+    render_procurement_workspace,
+)
 
 
-st.set_page_config(page_title="SupplyPilot V3.1", layout="wide")
+st.set_page_config(page_title="SupplyPilot Control Tower", page_icon="📦", layout="wide")
+inject_theme()
 
 
 def json_download(label: str, value: object, name: str) -> None:
@@ -85,35 +93,21 @@ def projection_choice(label: str = "演示案例"):
     return options[selected]
 
 
-PAGES = [
-    "智能问答（兼容页）", "数据质量", "需求分类", "需求预测", "预测对比与回测",
-    "预测版本及人工调整", "BOM需求拆解", "周度库存投影", "缺料风险", "库存冗余",
-    "PO行动清单", "情景模拟", "审批与任务跟踪",
-    "共用料ATP与客户分配", "多工厂调拨优化", "采购成本与批量优化",
-    "ECN验证状态机", "预测调整工作流", "周度快照与趋势",
-    "Excel导入与字段映射", "任务提醒与升级", "供应商交期可靠性",
-    "多情景库存成本优化", "管理驾驶舱",
-]
 requested_page = st.query_params.get("page")
-default_page_index = PAGES.index(requested_page) if requested_page in PAGES else 0
-page = st.sidebar.radio("业务模块", PAGES, index=default_page_index)
-st.title("SupplyPilot：需求预测与库存优化智能体")
-st.caption("历史治理 → 分类 → 预测/回测/版本 → BOM → 周投影 → 风险 → 动作校验 → 审批；全部核心数量由确定性 Python 服务计算")
+page = render_navigation(requested_page)
 
 
-if page == "智能问答（兼容页）":
-    examples = [
-        "列出决策冗余金额最高的10个物料。",
-        "生成本周可以取消或延期的在途PO预警清单。",
-        "为高风险专用料寻找ECN切换候选并给出验证路径。",
-        "模拟M0001在华东工厂需求下降20%且取消5000在途PO后的剩余冗余。",
-    ]
-    question = st.selectbox("示例问题", examples)
-    custom = st.text_area("或输入业务问题", height=100)
-    if st.button("开始诊断", type="primary"):
-        from src.agent import ask
-        with st.spinner("正在运行供应链工具链"):
-            st.markdown(asyncio.run(ask(custom.strip() or question)))
+if page == "管理驾驶舱":
+    render_control_tower()
+
+elif page == "库存控制台":
+    render_inventory_workspace()
+
+elif page == "采购工作台":
+    render_procurement_workspace()
+
+elif page == "AI Copilot":
+    render_copilot()
 
 elif page == "数据质量":
     report = assess_project_data()
@@ -141,15 +135,7 @@ elif page == "需求分类":
         csv_download("下载分类结果", frame, "demand_classification.csv")
 
 elif page == "需求预测":
-    histories, _ = histories_and_metadata()
-    item = st.selectbox("SKU/产品", list(histories))
-    classification, result = forecast_for(item)
-    st.write(f"模型：`{result.selected_model}`　置信度：`{result.confidence.value}`　人工复核：`{result.requires_manual_review}`")
-    frame = pd.DataFrame([point.model_dump(mode="json") for point in result.points])
-    st.line_chart(frame.set_index("week_start")[["baseline_qty", "optimistic_qty", "pessimistic_qty"]])
-    st.dataframe(frame, use_container_width=True)
-    st.caption(f"来源：{result.history_source}；规则版本：{result.rules_version}；计算时间：{result.calculated_at.isoformat()}")
-    csv_download("下载预测CSV", frame, f"forecast_{item}.csv")
+    render_demand_workspace()
 
 elif page == "预测对比与回测":
     histories, _ = histories_and_metadata()
@@ -447,31 +433,3 @@ elif page == "多情景库存成本优化":
     st.write(f"推荐方案：`{result.selected_decision_id}`；状态：`{result.status.value}`")
     st.dataframe(pd.DataFrame([row.model_dump(mode="json") for row in result.evaluations]), use_container_width=True)
     st.json(result.expected_cost_by_decision)
-
-elif page == "管理驾驶舱":
-    histories, _ = histories_and_metadata()
-    forecasts = [forecast_for(item)[1] for item in histories]
-    all_risks = []
-    for case_id, material, plant, cost, context in [
-        ("CASE1", "MAT-A", "DEMO_PLANT", 18, {"forecast_down_consecutive": True, "open_po": 16000}),
-        ("CASE2", "MAT-B", "TARGET_PLANT", 45, {"supplier_delay": True}),
-        ("CASE3", "MAT-C", "DEMO_PLANT", 20, {"po_late": True}),
-    ]:
-        all_risks.extend(identify_projection_risks(project_inventory_by_week(demo_projection(case_id, material, plant)), unit_cost=cost, context=context))
-    task_service = RiskTaskService()
-    for risk in all_risks:
-        task_service.create_from_risk(risk, assignee="demo_owner")
-    task_service.generate_notifications(date(2026, 8, 25))
-    supplier_records = demo_supplier_records()
-    supplier_results = [calculate_supplier_reliability(supplier, supplier_records) for supplier in sorted({row.supplier_id for row in supplier_records})]
-    dashboard = build_management_dashboard(
-        data_quality=assess_project_data(), forecasts=forecasts, risks=all_risks,
-        tasks=task_service.list_tasks(), suppliers=supplier_results,
-        source_versions={"dashboard": "DEMO-DASH-V1"},
-    )
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("数据阻断", dashboard.data_quality_blockers)
-    c2.metric("缺料风险", dashboard.shortage_risk_count)
-    c3.metric("冗余风险", dashboard.excess_risk_count)
-    c4.metric("开放任务", dashboard.open_task_count)
-    st.json(dashboard.model_dump(mode="json"))

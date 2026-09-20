@@ -23,7 +23,7 @@ NUMERIC_FIELDS = {
 }
 DATE_FIELDS = {
     "date", "week_start", "effective_date", "expiry_date", "effective_from",
-    "effective_to", "order_date", "receipt_date", "eta_date",
+    "effective_to", "valid_from", "valid_to", "order_date", "receipt_date", "eta_date",
 }
 
 
@@ -177,6 +177,8 @@ def validate_data_quality(
             duplicate_keys = [key for key in ("document_id",) if key in available_fields]
         elif table == "forecast_versions":
             duplicate_keys = [key for key in ("version_id", "item_id", "week_start") if key in available_fields]
+        elif table == "supplier_assignments":
+            duplicate_keys = [key for key in ("material_id", "supplier_id", "valid_from") if key in available_fields]
         if duplicate_keys:
             counts = Counter(tuple(str(row.get(key, "")) for key in duplicate_keys) for row in rows)
             for key, count in counts.items():

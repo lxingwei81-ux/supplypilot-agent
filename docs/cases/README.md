@@ -2,6 +2,8 @@
 
 本案例库使用仓库中的合成Demo数据。每个案例按照“业务问题 → 输入 → 公式/规则 → 确定性结果 → 动作和审批”组织，可以独立复现。
 
+第一次查看项目建议从[案例12：Control Tower Hero Demo](12-control-tower-hero.md)开始。它把需求、库存、供应商、跨厂调拨、PO消冗和AI Copilot证据串成一条完整决策链。
+
 ## 案例导航
 
 | # | 场景 | 主要能力 | 运行命令 |
@@ -17,6 +19,7 @@
 | 9 | [MOQ/MPQ与价格阶梯](09-moq-mpq-price-break.md) | 批量约束、价格阶梯、总成本 | `python examples/run_phase2_cases.py --case 4` |
 | 10 | [ECN验证状态机](10-ecn-workflow.md) | 规格、试制、质量、客户与追溯 | `python examples/run_phase2_cases.py --case 5` |
 | 11 | [多情景库存成本优化](11-multi-scenario-optimization.md) | 概率成本、鲁棒可行门禁 | `python examples/run_phase2_cases.py --case 10` |
+| 12 | [Control Tower Hero Demo](12-control-tower-hero.md) | MAT-B缺料、跨厂调拨、MAT-A消冗、结构化Copilot | `python -m streamlit run app.py` |
 
 ## 运行全部案例
 
@@ -32,7 +35,9 @@ python examples/run_phase2_cases.py --case all
 - 所有数量和金额由Python服务计算；
 - 结果包含适用的数据版本、规则版本或证据；
 - Demo成本、服务水平和阈值不代表生产参数；
+- Forecast上下限是规则化情景带，不是概率校准的统计置信区间；
 - “建议执行”不等于自动执行，高影响动作仍需审批；
+- 原V2兼容数据中的质量阻断项仍保留，控制塔使用隔离的`DEMO-*`数据版本，不代表旧数据已经修复；
 - 案例结果只证明逻辑和软件可以复现，不代表真实库存收益或预测准确率。
 
 [返回项目首页](../../README.md) · [查看公式手册](../FORMULA_CATALOG.md)
