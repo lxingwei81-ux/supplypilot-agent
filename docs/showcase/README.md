@@ -7,19 +7,21 @@
 - 本目录的 `index.html` 也会跳转到案例页，便于 GitHub Pages 或 Gitee Pages 选择 `docs/showcase` 目录时使用站点根入口。
 - `open-showcase.bat` 用于 Windows 本地单机双击打开网页。
 
-在线演示：
+Gitee Pages 展示地址（需当前账号/仓库已开通 Gitee Pages）：
 
 ```text
 https://chenxingwei1.gitee.io/supply-chain-pilot-agent/
 ```
 
-GitHub 备用地址：
+GitHub 在线展示地址（当前已部署可访问）：
 
 ```text
 https://lxingwei81-ux.github.io/supplypilot-agent/
 ```
 
 注意：在 Gitee/GitHub 仓库文件列表中直接点击 `.html` 文件会看到源码，这是代码托管平台文件浏览器的默认行为；需要使用上面的 Pages 链接，或下载仓库后在本机打开。
+
+如果 Gitee Pages 当前不可用或返回 404，说明静态站点服务尚未启用、未部署，或平台服务暂不可用；仓库代码已经准备好根目录跳转入口，服务恢复或启用后可直接打开。
 
 Gitee Pages 推荐配置：
 
