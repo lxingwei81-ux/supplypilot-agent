@@ -1,4 +1,4 @@
-# SupplyPilot：供应链计划与采购协同智能体 + AI Copilot
+# SupplyPilot：供应链计划与采购协同智能体
 
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-API-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
